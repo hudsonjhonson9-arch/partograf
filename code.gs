@@ -169,7 +169,7 @@ function getSpreadsheet() {
       mengecek satu-satu setiap kali.
 ========================= */
 
-const DATA_PREFILL_ROWS = 500; // jumlah baris formula yang disiapkan di muka pada sheet DATA MONITORING
+const DATA_PREFILL_ROWS = 200; // jumlah baris formula yang disiapkan di muka pada sheet DATA MONITORING
 const INIT_FLAG_KEY = 'PTEPAT_STRUKTUR_SIAP_V2';
 
 /**
@@ -248,12 +248,19 @@ function resetStrukturSheet() {
 
 function buildAllSheets_(ss) {
   createDashboardSheet(ss);
+  SpreadsheetApp.flush();
   createDataMonitoringSheet(ss);
+  SpreadsheetApp.flush();
   createChecklistSheet(ss);
+  SpreadsheetApp.flush();
   createRekapSheet(ss, SHEETS.SEBELUM, 'SEBELUM');
+  SpreadsheetApp.flush();
   createRekapSheet(ss, SHEETS.SESUDAH, 'SESUDAH');
+  SpreadsheetApp.flush();
   createPerbandinganSheet(ss);
+  SpreadsheetApp.flush();
   createPanduanSheet(ss);
+  SpreadsheetApp.flush();
   getOrCreateAuditSheet(ss);
   SpreadsheetApp.flush();
 }
