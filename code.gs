@@ -400,9 +400,9 @@ function createDataMonitoringSheet(ss) {
 
   for (let i = 0; i < n; i++) {
     const r = i + 2;
-    colA.push([`=IF(C${r}="","",ROW()-1)`]);
-    colJ.push([`=IF(C${r}="","",COUNTIF(E${r}:I${r},"Ya"))`]);
-    colK.push([`=IF(C${r}="","",IF(J${r}=5,"PATUH","BELUM PATUH"))`]);
+    colA.push([`=IF(C${r}="";"";ROW()-1)`]);
+    colJ.push([`=IF(C${r}="";"";COUNTIF(E${r}:I${r};"Ya"))`]);
+    colK.push([`=IF(C${r}="";"";IF(J${r}=5;"PATUH";"BELUM PATUH"))`]);
   }
 
   sheet.getRange(2, 1, n, 1).setFormulas(colA);
@@ -453,12 +453,12 @@ function perluasFormulaDataMonitoring(sampaiBaris) {
   const n = target - mulai + 1;
   const colA = [], colJ = [], colK = [];
 
-  for (let i = 0; i < n; i++) {
-    const r = mulai + i;
-    colA.push([`=IF(C${r}="","",ROW()-1)`]);
-    colJ.push([`=IF(C${r}="","",COUNTIF(E${r}:I${r},"Ya"))`]);
-    colK.push([`=IF(C${r}="","",IF(J${r}=5,"PATUH","BELUM PATUH"))`]);
-  }
+   for (let i = 0; i < n; i++) {
+     const r = mulai + i;
+     colA.push([`=IF(C${r}="";"";ROW()-1)`]);
+     colJ.push([`=IF(C${r}="";"";COUNTIF(E${r}:I${r};"Ya"))`]);
+     colK.push([`=IF(C${r}="";"";IF(J${r}=5;"PATUH";"BELUM PATUH"))`]);
+   }
 
   sheet.getRange(mulai, 1, n, 1).setFormulas(colA);
   sheet.getRange(mulai, 10, n, 1).setFormulas(colJ);
@@ -583,19 +583,19 @@ function createRekapSheet(ss, sheetName, status) {
   sheet.getRange('A4').setValue('Jumlah Partograf');
 
   sheet.getRange('B4').setFormula(
-    `=COUNTIF('${SHEETS.DATA}'!L:L,"${status}")`
+    `=COUNTIF('${SHEETS.DATA}'!L:L;"${status}")`
   );
 
   sheet.getRange('A5').setValue('Jumlah Patuh');
 
   sheet.getRange('B5').setFormula(
-    `=COUNTIFS('${SHEETS.DATA}'!L:L,"${status}",'${SHEETS.DATA}'!K:K,"PATUH")`
+    `=COUNTIFS('${SHEETS.DATA}'!L:L;"${status}";'${SHEETS.DATA}'!K:K;"PATUH")`
   );
 
   sheet.getRange('A6').setValue('Jumlah Belum Patuh');
 
   sheet.getRange('B6').setFormula(
-    `=COUNTIFS('${SHEETS.DATA}'!L:L,"${status}",'${SHEETS.DATA}'!K:K,"BELUM PATUH")`
+    `=COUNTIFS('${SHEETS.DATA}'!L:L;"${status}";'${SHEETS.DATA}'!K:K;"BELUM PATUH")`
   );
 
   sheet.getRange('A7').setValue(
@@ -603,7 +603,7 @@ function createRekapSheet(ss, sheetName, status) {
   );
 
   sheet.getRange('B7').setFormula(
-    '=IFERROR(B5/B4,0)'
+    '=IFERROR(B5/B4;0)'
   );
 
   sheet.getRange('B7')
@@ -1036,23 +1036,20 @@ function saveMonitoring(data) {
 
   sheet.appendRow(values);
 
+  const skor = KOMPONEN_TEPAT.reduce((n, key) => n + (data[key] === 'Ya' ? 1 : 0), 0);
   const row = sheet.getLastRow();
 
+  // No (kolom A) tetap pakai formula; Skor & Status ditulis sebagai NILAI
+  // (sudah dihitung di JS) agar tidak bergantung pemisah argumen formula
+  // (lokasi id_ID memakai ";"), sehingga bebas #ERROR! pada setiap simpan.
   sheet.getRange(row, 1).setFormula(
-    `=IF(C${row}="","",ROW()-1)`
+    `=IF(C${row}="";"";ROW()-1)`
   );
 
-  sheet.getRange(row, 10).setFormula(
-    `=IF(C${row}="","",COUNTIF(E${row}:I${row},"Ya"))`
-  );
-
-  sheet.getRange(row, 11).setFormula(
-    `=IF(C${row}="","",IF(J${row}=5,"PATUH","BELUM PATUH"))`
-  );
+  sheet.getRange(row, 10).setValue(skor);
+  sheet.getRange(row, 11).setValue(skor === 5 ? 'PATUH' : 'BELUM PATUH');
 
   SpreadsheetApp.flush();
-
-  const skor = KOMPONEN_TEPAT.reduce((n, key) => n + (data[key] === 'Ya' ? 1 : 0), 0);
 
   writeAuditLog('SIMPAN_MONITORING',
     'Kode=' + kode + '; Status=' + status + '; Skor=' + skor + '/5; Bidan=' + data.bidan
