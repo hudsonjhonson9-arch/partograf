@@ -213,9 +213,16 @@ function allSheetsExist_(ss) {
 function setupSpreadsheet() {
   const ss = getSpreadsheet();
 
+  // Bersihkan sisa lembar sementara dari proses rebuild yang gagal sebelumnya.
+  ss.getSheets().forEach(sh => {
+    if (sh.getName().indexOf('__tmp') === 0) {
+      ss.deleteSheet(sh);
+    }
+  });
+
   // Lembar sementara agar Google Sheets tidak menolak menghapus
   // lembar terakhir saat kita membangun ulang seluruh struktur.
-  const temp = ss.insertSheet('__tmp_setup__');
+  const temp = ss.insertSheet('__tmp_setup__' + new Date().getTime());
 
   // Hapus sheet lama supaya struktur (header, formula, validasi) dibangun
   // ulang SELURUHNYA. Ini juga mengatasi sheet yang pernah dibuat oleh
@@ -233,6 +240,15 @@ function setupSpreadsheet() {
   PropertiesService.getScriptProperties().setProperty(INIT_FLAG_KEY, 'true');
   SpreadsheetApp.flush();
   return 'Struktur sheet berhasil dibangun ulang sepenuhnya.';
+}
+
+/**
+ * Alias yang bisa dijalankan langsung dari editor Apps Script (tombol Run)
+ * untuk memperbaiki sheet yang error / salah referensi tanpa harus deploy
+ * ulang web app. Sama persis dengan setupSpreadsheet().
+ */
+function repairAllSheets() {
+  return setupSpreadsheet();
 }
 
 /**
