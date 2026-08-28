@@ -26,10 +26,17 @@ const YA_TIDAK_VALID = ['Ya', 'Tidak'];
  * Dipanggil lewat proxy /api/* di Vercel, maupun bisa langsung.
  *   ?action=dashboard        -> ringkasan kepatuhan
  *   ?action=monitoring&...   -> daftar data (dengan filter opsional)
+ *   ?action=setup            -> bangun ulang SELURUH struktur sheet
+ *                                (dashboard, data, checklist, rekap,
+ *                                 perbandingan, panduan, audit)
  * Tanpa parameter action -> respons kecil bahwa API hidup.
  */
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || '';
+
+  if (action === 'setup') {
+    return jsonOut_(safeRun_(setupSpreadsheet));
+  }
 
   if (action === 'dashboard') {
     return jsonOut_(safeRun_(getDashboardData));

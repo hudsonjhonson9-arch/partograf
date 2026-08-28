@@ -2,4 +2,4 @@
 # Backend sekarang pakai Google Apps Script (code.gs) — tidak perlu service account.
 
 # URL Web App dari Apps Script (lihat langkah di bawah)
-APPS_SCRIPT_URL=ISI_URL_WEB_APP_APPS_SCRIPT_DISINI
+APPS_SCRIPT_URL=https://script.google.com/macros/s/AKfycbweu7_vFIN-pi3oh5A0MCOVCgbFKppreWeGIclmrKNctdcQyM_hUzBT9Xx04FShRNc/exec
