@@ -21,21 +21,108 @@ const YA_TIDAK_VALID = ['Ya', 'Tidak'];
    WEB APP
 ========================= */
 
-function doGet() {
-  // PENTING: doGet TIDAK memanggil initializeSpreadsheet() secara penuh lagi.
-  // Sebelumnya setiap kali halaman dibuka, seluruh struktur sheet dibangun ulang,
-  // termasuk loop 1000 baris x 3 kolom formula (≈3000 panggilan API satu per satu)
-  // pada sheet DATA MONITORING. Itulah sebabnya Dashboard tampak "loading" terus
-  // atau bahkan gagal karena melebihi batas waktu eksekusi Apps Script.
-  // Sekarang cukup jalankan pemeriksaan ringan; pembuatan sheet sesungguhnya
-  // hanya terjadi sekali (lihat ensureSpreadsheetReady_).
-  ensureSpreadsheetReady_();
+/**
+ * Endpoint utama sebagai BACKEND JSON untuk aplikasi web (Vercel).
+ * Dipanggil lewat proxy /api/* di Vercel, maupun bisa langsung.
+ *   ?action=dashboard        -> ringkasan kepatuhan
+ *   ?action=monitoring&...   -> daftar data (dengan filter opsional)
+ * Tanpa parameter action -> respons kecil bahwa API hidup.
+ */
+function doGet(e) {
+  const action = (e && e.parameter && e.parameter.action) || '';
 
-  return HtmlService
-    .createTemplateFromFile('Index')
-    .evaluate()
-    .setTitle('Monitoring Partograf TEPAT')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  if (action === 'dashboard') {
+    return jsonOut_(safeRun_(getDashboardData));
+  }
+
+  if (action === 'monitoring') {
+    const f = e.parameter || {};
+    const rowsOrErr = safeRun_(() => getMonitoringData({
+      tanggalDari: f.tanggalDari,
+      tanggalSampai: f.tanggalSampai,
+      status: f.status,
+      bidan: f.bidan,
+      kode: f.kode
+    }));
+    if (rowsOrErr && rowsOrErr.error) {
+      return jsonOut_(rowsOrErr);
+    }
+    return jsonOut_(rowsOrErr.map(toMonitoringObject_));
+  }
+
+  return jsonOut_({ ok: true, message: 'PARTOGRAF TEPAT API (Google Apps Script)' });
+}
+
+
+/**
+ * Menerima aksi tulis (simpan / hapus) dari proxy Vercel.
+ * Body dikirim sebagai text/plain berisi JSON: {action:'save'|'delete', ...}.
+ */
+function doPost(e) {
+  let payload = {};
+  try {
+    if (e && e.postData && e.postData.contents) {
+      payload = JSON.parse(e.postData.contents);
+    }
+  } catch (err) {
+    return jsonOut_({ error: 'Format body tidak valid (bukan JSON).' });
+  }
+
+  const action = payload.action;
+
+  if (action === 'save') {
+    return jsonOut_(safeRun_(() => saveMonitoring(payload.data || {})));
+  }
+  if (action === 'delete') {
+    return jsonOut_(safeRun_(() => deleteMonitoring(payload.row)));
+  }
+
+  return jsonOut_({ error: 'Aksi tidak dikenali.' });
+}
+
+
+/** Bungkus eksekusi agar error tertangkap jadi {error:...} (status 200). */
+function safeRun_(fn) {
+  try {
+    return fn();
+  } catch (err) {
+    return { error: err.message || String(err) };
+  }
+}
+
+
+/** JSON response yang ramah CORS untuk dipanggil dari web app. */
+function jsonOut_(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+
+/**
+ * Ubah satu baris array (hasil getMonitoringData) menjadi objek dengan
+ * key yang diharapkan frontend: no, tanggal, kode, bidan, tertib,
+ * efektif, profesional, akurat, tepatWaktu, skor, statusKepatuhan,
+ * statusMonitoring, keterangan, rowNumber.
+ * Urutan kolom sheet: A..M = indeks 0..12, ditambah indeks 13 = nomor baris.
+ */
+function toMonitoringObject_(row) {
+  return {
+    no: row[0],
+    tanggal: row[1],
+    kode: row[2],
+    bidan: row[3],
+    tertib: row[4],
+    efektif: row[5],
+    profesional: row[6],
+    akurat: row[7],
+    tepatWaktu: row[8],
+    skor: row[9],
+    statusKepatuhan: row[10],
+    statusMonitoring: row[11],
+    keterangan: row[12],
+    rowNumber: row[13]
+  };
 }
 
 

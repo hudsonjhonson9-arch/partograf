@@ -1,0 +1,5 @@
+# Kopas ke Vercel: Settings → Environment Variables → tambah satu-satu.
+# Backend sekarang pakai Google Apps Script (code.gs) — tidak perlu service account.
+
+# URL Web App dari Apps Script (lihat langkah di bawah)
+APPS_SCRIPT_URL=ISI_URL_WEB_APP_APPS_SCRIPT_DISINI
