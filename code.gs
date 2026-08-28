@@ -212,10 +212,27 @@ function allSheetsExist_(ss) {
  */
 function setupSpreadsheet() {
   const ss = getSpreadsheet();
+
+  // Lembar sementara agar Google Sheets tidak menolak menghapus
+  // lembar terakhir saat kita membangun ulang seluruh struktur.
+  const temp = ss.insertSheet('__tmp_setup__');
+
+  // Hapus sheet lama supaya struktur (header, formula, validasi) dibangun
+  // ulang SELURUHNYA. Ini juga mengatasi sheet yang pernah dibuat oleh
+  // versi code.gs lama dengan layout kolom berbeda (penyebab #ERROR!).
+  Object.keys(SHEETS).forEach(function (key) {
+    const sh = ss.getSheetByName(SHEETS[key]);
+    if (sh) {
+      ss.deleteSheet(sh);
+    }
+  });
+
   buildAllSheets_(ss);
+  ss.deleteSheet(temp);
+
   PropertiesService.getScriptProperties().setProperty(INIT_FLAG_KEY, 'true');
   SpreadsheetApp.flush();
-  return 'Struktur sheet berhasil disiapkan/diperiksa.';
+  return 'Struktur sheet berhasil dibangun ulang sepenuhnya.';
 }
 
 /**
