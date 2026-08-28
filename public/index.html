@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+  <style>
+
+    /* ============================================================
+       PARTOGRAF TEPAT — Design tokens
+       Concept: the app is built on the "chart paper" of a real
+       partograph. The alert line (amber) and action line (red) —
+       the two thresholds a midwife watches during labour — become
+       the app's own compliance-status colour language, and a
+       drawn partograph line is the signature motif at load.
+       ============================================================ */
+    :root{
+      --paper:      #F6F2E7;
+      --paper-2:    #EFE9D8;
+      --ink:        #1E2B27;
+      --ink-soft:   #4B5A55;
+      --teal:       #0E5B54;
+      --teal-deep:  #0A3D39;
+      --teal-line:  #135F58;
+      --line-grid:  #DCD3B8;
+      --action:     #B23A2E;   /* action line — belum patuh / bahaya */
+      --action-soft:#F4DCD6;
+      --alert:      #C08A2A;   /* alert line — perhatian */
+      --alert-soft: #F3E6C8;
+      --patuh:      #256B49;   /* garis aman — patuh */
+      --patuh-soft: #DCEBDF;
+      --card:       #FFFDF7;
+      --shadow:     0 18px 40px -20px rgba(10,40,36,.35);
+      --radius:     14px;
+      --serif: "Fraunces", "Georgia", serif;
+      --sans:  "IBM Plex Sans", Arial, sans-serif;
+      --mono:  "IBM Plex Mono", "Courier New", monospace;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important;}
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background:
+        linear-gradient(var(--paper), var(--paper)),
+        repeating-linear-gradient(0deg, var(--line-grid) 0 1px, transparent 1px 28px),
+        repeating-linear-gradient(90deg, var(--line-grid) 0 1px, transparent 1px 28px);
+      background-blend-mode: normal;
+      opacity: 0;
+      animation: bodyIn .5s ease forwards;
+      color: var(--ink);
+    }
+    @keyframes bodyIn{ to{ opacity:1; } }
+
+    ::selection{ background: var(--alert-soft); color: var(--teal-deep); }
+
+    ::-webkit-scrollbar{ width:10px; height:10px; }
+    ::-webkit-scrollbar-thumb{ background:#c9c0a1; border-radius:8px; }
+    ::-webkit-scrollbar-track{ background:transparent; }
+
+    :focus-visible{
+      outline: 3px solid var(--teal);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    h1,h2,h3{ font-family: var(--serif); letter-spacing: -0.01em; }
+
+    .header {
+      background: linear-gradient(120deg, var(--teal-deep), var(--teal) 65%, var(--teal-line));
+      color: #F6F2E7;
+      padding: 26px 28px;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .header::after{
+      content:"";
+      position:absolute; inset:0;
+      background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 34px);
+      pointer-events:none;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 600;
+    }
+    .header p {
+      margin: 6px 0 0;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: #CFE3DF;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 24px;
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+      animation: pageIn .38s cubic-bezier(.2,.7,.3,1) both;
+    }
+    @keyframes pageIn{
+      from{ opacity:0; transform: translateY(10px); }
+      to{ opacity:1; transform: translateY(0); }
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns:
+        repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line-grid);
+      border-left: 4px solid var(--teal);
+      padding: 20px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(14px);
+      animation: cardIn .5s cubic-bezier(.2,.7,.3,1) forwards;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .card:hover{ transform: translateY(-3px); box-shadow: 0 22px 44px -20px rgba(10,40,36,.4); }
+    @keyframes cardIn{ to{ opacity:1; transform:none; } }
+    .cards .card:nth-child(1){ animation-delay: .02s; }
+    .cards .card:nth-child(2){ animation-delay: .09s; }
+    .cards .card:nth-child(3){ animation-delay: .16s; }
+    .cards .card:nth-child(4){ animation-delay: .23s; }
+    .cards .card:nth-child(5){ animation-delay: .30s; border-left-color: var(--patuh); }
+
+    .card h3 {
+      margin-top: 0;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      font-family: var(--mono);
+      font-weight: 600;
+    }
+
+    .number {
+      font-family: var(--serif);
+      font-size: 34px;
+      font-weight: 600;
+      color: var(--teal-deep);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .form {
+      background: var(--card);
+      border: 1px solid var(--line-grid);
+      padding: 22px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      animation: cardIn .4s ease both;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns:
+        repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 12.5px;
+      letter-spacing: .02em;
+      display: block;
+      margin-bottom: 6px;
+      color: var(--teal-deep);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1.5px solid var(--line-grid);
+      border-radius: 9px;
+      font-size: 14px;
+      font-family: var(--sans);
+      background: #fff;
+      color: var(--ink);
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(14,91,84,.14);
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .btn {
+      margin-top: 18px;
+      padding: 12px 22px;
+      border: none;
+      border-radius: 9px;
+      background: var(--teal);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: .01em;
+      transition: transform .12s ease, background .15s ease, box-shadow .15s ease;
+      box-shadow: 0 8px 18px -8px rgba(14,91,84,.55);
+    }
+
+    .btn:hover {
+      background: var(--teal-line);
+      transform: translateY(-1px);
+    }
+    .btn:active{ transform: translateY(0) scale(.98); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      margin-top: 20px;
+      font-size: 13px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line-grid);
+      text-align: center;
+    }
+
+    th {
+      background: var(--teal-deep);
+      color: #EFE9D8;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    tbody tr{
+      opacity: 0;
+      animation: rowIn .35s ease forwards;
+    }
+    tbody tr:nth-child(n){ animation-delay: calc(var(--i, 0) * 28ms); }
+    @keyframes rowIn{ from{ opacity:0; transform: translateX(-6px);} to{ opacity:1; transform:none; } }
+
+    .patuh {
+      color: var(--patuh);
+      font-weight: 700;
+    }
+
+    .belum {
+      color: var(--action);
+      font-weight: 700;
+    }
+
+    .chart {
+      background: var(--card);
+      margin-top: 20px;
+      padding: 22px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line-grid);
+      box-shadow: var(--shadow);
+    }
+    .chart h3{ margin-top:0; font-size:16px; }
+
+    .bar-container {
+      margin: 16px 0;
+    }
+
+    .bar-label {
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-family: var(--mono);
+      font-size: 12.5px;
+    }
+
+    .bar {
+      width: 100%;
+      background: var(--paper-2);
+      border-radius: 999px;
+      overflow: hidden;
+      height: 26px;
+      border: 1px solid var(--line-grid);
+    }
+
+    .bar-value {
+      height: 100%;
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      color: #fff;
+      text-align: right;
+      font-weight: 700;
+      font-family: var(--mono);
+      font-size: 12px;
+      width: 0%;
+      animation: barGrow 1.1s cubic-bezier(.2,.7,.2,1) .15s forwards;
+      transition: background .2s ease;
+    }
+    @keyframes barGrow{ to{ width: var(--w, 0%); } }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--ink-soft);
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: .03em;
+    }
+    .loading::before{
+      content:"";
+      display:block;
+      width: 34px; height: 34px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      border: 3px solid var(--line-grid);
+      border-top-color: var(--teal);
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
+
+    @media(max-width:600px) {
+
+      .header h1 {
+        font-size: 19px;
+      }
+
+      .container {
+        padding: 12px;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+
+    }
+
+
+/* ===== PARTOGRAF TEPAT — sign-in ===== */
+.login-screen{
+  position:fixed; inset:0; z-index:9999; overflow:auto;
+  display:grid; grid-template-columns:1.08fr .92fr;
+  background:
+    linear-gradient(var(--paper), var(--paper)),
+    repeating-linear-gradient(0deg, var(--line-grid) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(90deg, var(--line-grid) 0 1px, transparent 1px 26px);
+}
+.login-left{
+  position:relative; padding:44px 6vw; display:flex; flex-direction:column; justify-content:center;
+  overflow:hidden;
+}
+.gov-title{ font-family:var(--mono); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
+.rs-title{ font-family:var(--serif); font-weight:700; font-size:30px; color:var(--teal-deep); margin:6px 0 20px; }
+.pte-title{ font-family:var(--serif); font-size:clamp(40px,6vw,64px); line-height:.98; font-weight:600; color:var(--ink); letter-spacing:-.01em; }
+.pte-title span{ color:var(--action); font-style:italic; }
+.pte-sub{ font-size:16px; max-width:480px; color:var(--ink-soft); line-height:1.55; margin-top:14px; }
+
+.login-tags{ position:relative; z-index:4; display:flex; gap:8px; flex-wrap:wrap; margin-top:26px; }
+.login-tag{
+  background:#fff; border:1px solid var(--line-grid); border-radius:999px; padding:7px 13px;
+  font-size:11.5px; font-family:var(--mono); font-weight:600; color:var(--teal-deep);
+  opacity:0; animation:tagIn .4s ease forwards;
+}
+.login-tags .login-tag:nth-child(1){animation-delay:.55s}
+.login-tags .login-tag:nth-child(2){animation-delay:.65s}
+.login-tags .login-tag:nth-child(3){animation-delay:.75s}
+.login-tags .login-tag:nth-child(4){animation-delay:.85s}
+.login-tags .login-tag:nth-child(5){animation-delay:.95s}
+@keyframes tagIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+/* signature element: an animated partograph line — the cervical
+   dilation curve crossing the alert line then the action line,
+   drawn on load like a pen tracing the chart */
+.partograph-signature{ margin-top:28px; max-width:520px; }
+.partograph-signature svg{ width:100%; height:auto; display:block; }
+.pg-grid-line{ stroke:var(--line-grid); stroke-width:1; }
+.pg-alert{ stroke:var(--alert); stroke-width:1.6; stroke-dasharray:5 4; }
+.pg-action{ stroke:var(--action); stroke-width:1.6; stroke-dasharray:5 4; }
+.pg-curve{
+  fill:none; stroke:var(--teal); stroke-width:3; stroke-linecap:round;
+  stroke-dasharray: 420; stroke-dashoffset: 420;
+  animation: drawCurve 2.1s cubic-bezier(.4,.1,.2,1) .3s forwards;
+}
+.pg-dot{
+  opacity:0; animation: dotIn .3s ease forwards;
+}
+.pg-dot:nth-of-type(1){ animation-delay: .5s; }
+.pg-dot:nth-of-type(2){ animation-delay: 1s; }
+.pg-dot:nth-of-type(3){ animation-delay: 1.5s; }
+.pg-dot:nth-of-type(4){ animation-delay: 2.0s; }
+@keyframes drawCurve{ to{ stroke-dashoffset:0; } }
+@keyframes dotIn{ from{ opacity:0; transform:scale(0);} to{ opacity:1; transform:scale(1);} }
+.pg-legend{ font-family:var(--mono); font-size:10px; }
+.pg-legend-alert{ fill:var(--alert); }
+.pg-legend-action{ fill:var(--action); }
+
+.login-right{ display:flex; align-items:center; justify-content:center; padding:30px; }
+.login-box{
+  width:min(440px,100%); background:var(--card); border-radius:18px; padding:38px;
+  box-shadow: var(--shadow); border:1px solid var(--line-grid);
+  opacity:0; transform: translateY(16px) scale(.98);
+  animation: boxIn .55s cubic-bezier(.2,.7,.2,1) .1s forwards;
+}
+@keyframes boxIn{ to{ opacity:1; transform:none; } }
+.login-box h1{ text-align:center; font-size:30px; margin:10px 0 4px; color:var(--teal-deep); }
+.login-box .desc{ text-align:center; color:var(--ink-soft); margin-bottom:24px; font-size:13.5px; }
+.login-field{ margin:15px 0; }
+.login-field label{ font-size:11.5px; font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em; color:var(--teal); margin-bottom:7px; }
+.login-submit{
+  width:100%; padding:13px; border:0; border-radius:9px; background:var(--teal); color:#fff;
+  font-weight:700; letter-spacing:.02em; cursor:pointer; margin-top:6px;
+  transition: transform .12s ease, background .15s ease;
+  box-shadow: 0 10px 22px -10px rgba(14,91,84,.6);
+}
+.login-submit:hover{ background:var(--teal-line); transform:translateY(-1px); }
+.login-submit:active{ transform:translateY(0) scale(.98); }
+.login-error{
+  background:var(--action-soft); color:var(--action); border-radius:10px; padding:11px 13px;
+  font-size:12.5px; margin-bottom:14px; border:1px solid #e3b9b0;
+  animation: shake .35s ease;
+}
+@keyframes shake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+.demo{ margin-top:18px; background:var(--paper-2); border-radius:10px; padding:11px 13px; font-size:11px; color:var(--ink-soft); font-family:var(--mono); }
+.demo b{ color:var(--teal-deep); }
+
+/* ===== sidebar / app shell ===== */
+.side-premium{
+  position:fixed; left:0; top:0; bottom:0; width:258px; z-index:30; overflow:auto;
+  background: linear-gradient(180deg, var(--teal-deep), #072925);
+  color:#EFE9D8; padding:16px 12px;
+  box-shadow: 8px 0 30px -12px rgba(0,0,0,.35);
+}
+.side-head{ display:flex; gap:10px; align-items:center; padding:8px 6px 18px; border-bottom:1px solid rgba(255,255,255,.12); }
+.side-head img{ width:46px; height:46px; background:#fff; border-radius:11px; padding:3px; object-fit:contain; }
+.side-head b{ display:block; font-size:15.5px; font-family:var(--serif); }
+.side-head small{ color:#9FC7BE; font-family:var(--mono); font-size:10px; letter-spacing:.05em; }
+.side-label{ font-size:9.5px; color:#7FB5AA; font-family:var(--mono); font-weight:700; letter-spacing:.12em; margin:20px 9px 8px; }
+.side-link{
+  display:flex; gap:11px; align-items:center; width:100%; border:0; background:transparent; color:#E9F3F0;
+  padding:11px 10px; border-radius:9px; font-weight:500; font-size:13.5px; cursor:pointer; text-align:left; margin:2px 0;
+  transition: background .15s ease, padding-left .15s ease;
+}
+.side-link i{ width:20px; text-align:center; font-style:normal; }
+.side-link:hover{ background:rgba(255,255,255,.08); padding-left:14px; }
+.side-link.active{ background:rgba(255,255,255,.14); box-shadow: inset 3px 0 0 var(--alert); }
+.side-badge{
+  display:inline-flex; align-items:center; justify-content:center; min-width:19px; height:19px; padding:0 5px;
+  border-radius:999px; background:var(--action); color:#fff; font-size:10.5px; font-weight:700;
+  font-family:var(--mono); margin-left:auto; box-shadow:0 0 0 0 rgba(178,58,46,.6);
+  animation: badgePulse 1.8s ease-in-out infinite;
+}
+.side-link{ justify-content:flex-start; }
+.side-link span:not(.side-badge){ flex:1; }
+@keyframes badgePulse{
+  0%{ box-shadow:0 0 0 0 rgba(178,58,46,.55); }
+  70%{ box-shadow:0 0 0 7px rgba(178,58,46,0); }
+  100%{ box-shadow:0 0 0 0 rgba(178,58,46,0); }
+}
+.side-user{ margin:14px 2px; padding:11px; border-radius:11px; background:rgba(255,255,255,.06); font-size:11px; font-family:var(--mono); }
+.side-user b{ font-family:var(--sans); font-size:13px; }
+.side-logout{ border-top:1px solid rgba(255,255,255,.12); margin-top:10px; padding-top:10px; }
+.side-logout:hover{ background:rgba(178,58,46,.25); }
+
+.premium-main{ margin-left:258px; }
+.premium-main .header{ text-align:left; }
+.premium-main .container{ max-width:1400px; }
+.premium-main .nav{ display:none; }
+
+.hak-card{ background:var(--card); border:1px solid var(--line-grid); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow); animation: cardIn .4s ease both; }
+.hak-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.hak-card h3{ margin-top:0; color:var(--teal-deep); }
+.role-pill{ display:inline-block; padding:5px 11px; border-radius:999px; background:var(--paper-2); color:var(--teal-deep); font-weight:700; font-size:10px; font-family:var(--mono); letter-spacing:.05em; }
+
+@media(max-width:900px){
+  .login-screen{ grid-template-columns:1fr; }
+  .login-left{ min-height:360px; padding:28px; }
+  .login-right{ padding:20px; }
+  .side-premium{ width:70px; }
+  .side-head div,.side-label,.side-link span,.side-user{ display:none; }
+  .side-head{ justify-content:center; }
+  .side-link{ justify-content:center; }
+  .premium-main{ margin-left:70px; }
+  .hak-grid{ grid-template-columns:1fr; }
+}
+
+.page-title{ display:flex; justify-content:space-between; align-items:flex-end; gap:15px; margin-bottom:20px; flex-wrap:wrap; }
+.page-title h2{ margin:0 0 4px; font-size:24px; }
+.page-title p{ margin:0; color:var(--ink-soft); font-size:13.5px; }
+.btn.secondary{ background:#fff; color:var(--teal-deep); border:1.5px solid var(--line-grid); box-shadow:none; }
+.btn.secondary:hover{ background:var(--paper-2); }
+
+.toast{
+  position:fixed; right:24px; top:24px; z-index:10000; background:var(--teal-deep); color:#EFE9D8;
+  padding:13px 18px; border-radius:10px; box-shadow:var(--shadow); font-size:13.5px;
+  animation: toastIn .3s cubic-bezier(.2,.8,.2,1) both;
+  border-left:4px solid var(--alert);
+}
+@keyframes toastIn{ from{ opacity:0; transform: translateX(24px);} to{ opacity:1; transform:none; } }
+
+.score-preview{
+  margin-top:20px; padding:16px 20px; background:var(--paper-2); border:1px dashed var(--teal);
+  border-radius:12px; display:flex; align-items:center; gap:16px; transition: background .2s ease, border-color .2s ease;
+}
+.score-preview strong{ font-family:var(--serif); font-size:26px; color:var(--teal-deep); font-variant-numeric:tabular-nums; }
+.score-preview em{ font-style:normal; font-weight:700; color:var(--ink-soft); font-family:var(--mono); font-size:11.5px; letter-spacing:.04em; text-transform:uppercase; }
+
+.error-box{ background:var(--action-soft); border:1px solid #e3b9b0; color:var(--action); padding:18px; border-radius:12px; }
+.empty-box{ background:var(--card); border:1px dashed var(--line-grid); padding:32px; border-radius:12px; text-align:center; color:var(--ink-soft); }
+
+@media print{
+  .side-premium, .header, .page-title, #filterBox, .toast, .no-print{ display:none !important; }
+  .premium-main{ margin-left:0 !important; }
+  body{ background:#fff !important; }
+  #data::before{
+    content:"LAPORAN DATA MONITORING PARTOGRAF TEPAT — RSU HOBA KALLA";
+    display:block; font-family:var(--serif); font-size:18px; font-weight:700; margin-bottom:10px;
+  }
+  table{ box-shadow:none !important; border:1px solid #999 !important; }
+  th{ background:#eee !important; color:#000 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  tbody tr{ animation:none !important; opacity:1 !important; }
+}
+
+</style>
+
+</head>
+
+
+<body>
+<div id="loginScreen" class="login-screen">
+<div class="login-left">
+<div class="gov-title">PEMERINTAH KABUPATEN SUMBA BARAT</div>
+<div class="rs-title">RSU HOBA KALLA</div>
+<div class="pte-title">PARTOGRAF <span>TEPAT</span></div>
+<div class="pte-sub">Monitoring kepatuhan dokumentasi lembar pemantauan persalinan — dari garis waspada sampai garis bertindak, setiap tanda di partograf punya arti.</div>
+<div class="login-tags"><span class="login-tag">T · Tertib</span><span class="login-tag">E · Efektif</span><span class="login-tag">P · Profesional</span><span class="login-tag">A · Akurat</span><span class="login-tag">T · Tepat Waktu</span></div>
+
+<div class="partograph-signature" aria-hidden="true">
+<svg viewBox="0 0 520 220" role="img" aria-label="Ilustrasi kurva partograf melewati garis waspada dan garis bertindak">
+  <!-- chart grid -->
+  <g class="pg-grid-line">
+    <line x1="0" y1="30" x2="520" y2="30"></line>
+    <line x1="0" y1="70" x2="520" y2="70"></line>
+    <line x1="0" y1="110" x2="520" y2="110"></line>
+    <line x1="0" y1="150" x2="520" y2="150"></line>
+    <line x1="0" y1="190" x2="520" y2="190"></line>
+  </g>
+  <!-- alert line -->
+  <line class="pg-alert" x1="70" y1="200" x2="330" y2="20"></line>
+  <!-- action line (4h to the right of alert) -->
+  <line class="pg-action" x1="150" y1="200" x2="410" y2="20"></line>
+  <!-- the labour curve, dips below both lines: on-time / compliant -->
+  <path class="pg-curve" d="M20,195 C 80,185 120,160 150,130 C 190,90 230,60 300,45 C 360,32 420,26 500,18"></path>
+  <circle class="pg-dot" cx="20" cy="195" r="4.5" fill="#0E5B54"></circle>
+  <circle class="pg-dot" cx="150" cy="130" r="4.5" fill="#0E5B54"></circle>
+  <circle class="pg-dot" cx="300" cy="45" r="4.5" fill="#0E5B54"></circle>
+  <circle class="pg-dot" cx="500" cy="18" r="4.5" fill="#0E5B54"></circle>
+  <text x="76" y="14" class="pg-legend pg-legend-alert">GARIS WASPADA</text>
+  <text x="330" y="14" class="pg-legend pg-legend-action">GARIS BERTINDAK</text>
+</svg>
+</div>
+</div>
+<div class="login-right"><div class="login-box">
+<div style="text-align:center;font-size:38px">🩺</div><h1>Masuk</h1><div class="desc">Silakan masuk untuk melanjutkan ke aplikasi PARTOGRAF TEPAT</div>
+<div id="loginError" class="login-error" style="display:none"></div>
+<div class="login-field"><label>Nama Pengguna</label><input id="loginUser" placeholder="Masukkan username" autocomplete="username"></div>
+<div class="login-field"><label>Kata Sandi</label><input id="loginPass" type="password" placeholder="Masukkan password" autocomplete="current-password"></div>
+<button class="login-submit" onclick="loginApp()">Masuk ke Aplikasi</button>
+<div class="demo"><b>Akun awal:</b> admin/admin123 &nbsp;·&nbsp; bidan/bidan123 &nbsp;·&nbsp; pimpinan/pimpinan123</div>
+<div style="text-align:center;margin-top:22px;color:#8a978f;font-size:11px;font-family:var(--mono)">PARTOGRAF TEPAT · RSU HOBA KALLA<br>PEMERINTAH KABUPATEN SUMBA BARAT</div>
+</div></div></div>
+<div id="sidePremium" class="side-premium" style="display:none">
+<div class="side-head"><img src="data:image/png;base64,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">
+<div><b>PARTOGRAF TEPAT</b><small>RSU HOBA KALLA</small></div></div>
+<div class="side-label">MENU UTAMA</div>
+<button class="side-link active" data-page="dashboard" onclick="showPage('dashboard')"><i>▦</i><span>Dashboard</span></button>
+<button class="side-link" data-page="input" data-role="ADMIN,PETUGAS" onclick="showPage('input')"><i>＋</i><span>Input Monitoring</span></button>
+<button class="side-link" data-page="data" onclick="showPage('data')"><i>▤</i><span>Data Monitoring</span><span id="badgeBelumPatuh" class="side-badge" style="display:none">0</span></button>
+<button class="side-link" data-page="evaluasi" data-role="ADMIN,PIMPINAN" onclick="showPage('evaluasi')"><i>↗</i><span>Evaluasi</span></button>
+<button class="side-link" data-page="rekapsebelum" data-role="ADMIN,PIMPINAN" onclick="showPage('rekapsebelum')"><i>◀</i><span>Rekap Sebelum</span></button>
+<button class="side-link" data-page="rekapsesudah" data-role="ADMIN,PIMPINAN" onclick="showPage('rekapsesudah')"><i>▶</i><span>Rekap Sesudah</span></button>
+<button class="side-link" data-page="perbandingan" data-role="ADMIN,PIMPINAN" onclick="showPage('perbandingan')"><i>⇄</i><span>Perbandingan</span></button>
+<button class="side-link" data-page="checklist" onclick="showPage('checklist')"><i>☑</i><span>Checklist TEPAT</span></button>
+<button class="side-link" data-page="panduan" onclick="showPage('panduan')"><i>?</i><span>Panduan</span></button>
+<div class="side-label">HAK AKSES</div>
+<button class="side-link" data-page="hakakses" data-role="ADMIN" onclick="showPage('hakakses')"><i>♟</i><span>Hak Akses</span></button>
+<button class="side-link" data-page="pengguna" data-role="ADMIN" onclick="showPage('pengguna')"><i>👤</i><span>Pengguna</span></button>
+<div class="side-user"><b id="sideName">-</b><br><span id="sideRole">-</span></div>
+<button class="side-link side-logout" onclick="logoutApp()"><i>⇥</i><span>Logout</span></button>
+</div>
+
+
+<div id="premiumMain" class="premium-main" style="display:none">
+  <div class="header"><h1>Partograf TEPAT</h1><p>Pemerintah Kabupaten Sumba Barat · RSU Hoba Kalla</p></div>
+  <div class="container">
+    <div id="toast" class="toast" style="display:none"></div>
+    <section id="dashboard" class="page active"><div class="page-title"><div><h2>Dashboard</h2><p>Ringkasan monitoring kepatuhan dokumentasi Partograf TEPAT.</p></div><button class="btn secondary" onclick="loadDashboard()">↻ Refresh</button></div><div id="dashboardContent" class="loading">Memuat data...</div></section>
+    <section id="input" class="page"><div class="page-title"><div><h2>Input Monitoring</h2><p>Masukkan hasil penilaian lima komponen TEPAT.</p></div></div><div class="form"><div class="grid">
+      <div><label>Tanggal</label><input type="date" id="tanggal"></div><div><label>Kode Partograf</label><input type="text" id="kode" placeholder="Contoh: P001"></div><div><label>Inisial Bidan</label><input type="text" id="bidan" placeholder="Contoh: BA"></div><div><label>Status Monitoring</label><select id="status"><option value="">-- Pilih --</option><option>SEBELUM</option><option>SESUDAH</option></select></div>
+      <div><label>Tertib</label><select id="tertib"><option value="">-- Pilih --</option><option>Ya</option><option>Tidak</option></select></div><div><label>Efektif</label><select id="efektif"><option value="">-- Pilih --</option><option>Ya</option><option>Tidak</option></select></div><div><label>Profesional</label><select id="profesional"><option value="">-- Pilih --</option><option>Ya</option><option>Tidak</option></select></div><div><label>Akurat</label><select id="akurat"><option value="">-- Pilih --</option><option>Ya</option><option>Tidak</option></select></div><div><label>Tepat Waktu</label><select id="tepatWaktu"><option value="">-- Pilih --</option><option>Ya</option><option>Tidak</option></select></div>
+    </div><div style="margin-top:15px"><label>Keterangan</label><textarea id="keterangan" placeholder="Catatan hasil monitoring"></textarea></div><div class="score-preview"><span>Skor TEPAT</span><strong id="scorePreview">0 / 5</strong><em id="statusPreview">Belum dinilai</em></div><button class="btn" onclick="simpanData()">💾 Simpan Monitoring</button></div></section>
+    <section id="data" class="page"><div class="page-title"><div><h2>Data Monitoring</h2><p>Daftar seluruh hasil monitoring yang tersimpan.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn secondary" onclick="loadData()">↻ Refresh</button><button class="btn secondary" onclick="printData()">🖨 Cetak</button></div></div>
+      <div class="form" style="margin-bottom:18px" id="filterBox">
+        <div class="grid">
+          <div><label>Dari Tanggal</label><input type="date" id="filterDari"></div>
+          <div><label>Sampai Tanggal</label><input type="date" id="filterSampai"></div>
+          <div><label>Status Monitoring</label><select id="filterStatus"><option value="">Semua</option><option>SEBELUM</option><option>SESUDAH</option></select></div>
+          <div><label>Inisial Bidan</label><input type="text" id="filterBidan" placeholder="Contoh: BA"></div>
+          <div><label>Kode Partograf</label><input type="text" id="filterKode" placeholder="Contoh: P001"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <button class="btn" style="margin-top:0" onclick="loadData()">🔎 Terapkan Filter</button>
+          <button class="btn secondary" style="margin-top:0" onclick="resetFilter()">✕ Reset</button>
+        </div>
+      </div>
+    <div id="dataContent" class="loading">Memuat data...</div></section>
+    <section id="evaluasi" class="page"><div class="page-title"><div><h2>Evaluasi</h2><p>Perbandingan kondisi sebelum dan sesudah aktualisasi.</p></div><button class="btn secondary" onclick="loadEvaluasi()">↻ Refresh</button></div><div id="evaluasiContent" class="loading">Memuat evaluasi...</div></section>
+    <section id="rekapsebelum" class="page"><div class="page-title"><div><h2>Rekap Sebelum</h2><p>Rekapitulasi monitoring sebelum intervensi.</p></div></div><div id="rekapSebelumContent" class="loading">Memuat data...</div></section>
+    <section id="rekapsesudah" class="page"><div class="page-title"><div><h2>Rekap Sesudah</h2><p>Rekapitulasi monitoring sesudah intervensi.</p></div></div><div id="rekapSesudahContent" class="loading">Memuat data...</div></section>
+    <section id="perbandingan" class="page"><div class="page-title"><div><h2>Perbandingan</h2><p>Perubahan kepatuhan sebelum dan sesudah.</p></div></div><div id="perbandinganContent" class="loading">Memuat data...</div></section>
+    <section id="checklist" class="page"><div class="page-title"><div><h2>Checklist TEPAT</h2><p>Instrumen penilaian yang digunakan pada monitoring.</p></div></div><div class="hak-card"><table><thead><tr><th>No</th><th>Komponen</th><th>Indikator Monitoring</th><th>Ya</th><th>Tidak</th></tr></thead><tbody><tr><td>1</td><td><b>Tertib</b></td><td>Partograf diisi sesuai tahapan dan tidak ada bagian penting yang terlewat.</td><td>1</td><td>0</td></tr><tr><td>2</td><td><b>Efektif</b></td><td>Pengisian mendukung pemantauan kemajuan persalinan dan pengambilan keputusan.</td><td>1</td><td>0</td></tr><tr><td>3</td><td><b>Profesional</b></td><td>Dokumentasi jelas, konsisten, dan sesuai standar pelayanan.</td><td>1</td><td>0</td></tr><tr><td>4</td><td><b>Akurat</b></td><td>Data hasil pemantauan dicatat sesuai kondisi atau hasil pemeriksaan.</td><td>1</td><td>0</td></tr><tr><td>5</td><td><b>Tepat Waktu</b></td><td>Pengisian dilakukan sesuai waktu pemantauan yang ditetapkan.</td><td>1</td><td>0</td></tr></tbody></table></div></section>
+    <section id="panduan" class="page"><div class="page-title"><div><h2>Panduan</h2><p>Petunjuk penggunaan aplikasi.</p></div></div><div class="hak-card"><ol><li>Login menggunakan username dan password.</li><li>Pilih <b>Input Monitoring</b> untuk memasukkan hasil penilaian.</li><li>Isi tanggal, kode Partograf, inisial bidan, dan status monitoring.</li><li>Nilai Tertib, Efektif, Profesional, Akurat, dan Tepat Waktu dengan Ya/Tidak.</li><li>Skor 5 = <b>PATUH</b>; skor kurang dari 5 = <b>BELUM PATUH</b>.</li><li>Gunakan Dashboard, Rekap, dan Perbandingan untuk evaluasi.</li></ol></div></section>
+    <section id="pengguna" class="page"><div class="page-title"><div><h2>Manajemen Pengguna</h2><p>Pengaturan akun dan petugas yang dapat mengakses sistem.</p></div></div><div class="hak-card"><table><thead><tr><th>Username</th><th>Nama</th><th>Peran</th></tr></thead><tbody id="userTable"></tbody></table></div></section>
+    <section id="hakakses" class="page"><div class="page-title"><div><h2>Hak Akses</h2><p>Pengaturan hak akses berdasarkan peran pengguna.</p></div></div><div class="hak-grid"><div class="hak-card"><h3>Administrator</h3><span class="role-pill">ADMIN</span><p>Akses penuh ke seluruh menu aplikasi.</p></div><div class="hak-card"><h3>Petugas Bidan</h3><span class="role-pill">PETUGAS</span><p>Dashboard, input, data monitoring, checklist, dan panduan.</p></div><div class="hak-card"><h3>Pimpinan RS</h3><span class="role-pill">PIMPINAN</span><p>Dashboard, data, evaluasi, rekap, perbandingan, dan panduan.</p></div></div></section>
+  </div>
+</div>
+<script>
+let currentUser=null;
+const USERS={admin:{password:'admin123',name:'Administrator',role:'ADMIN',inisial:''},bidan:{password:'bidan123',name:'Petugas Bidan',role:'PETUGAS',inisial:'BD'},pimpinan:{password:'pimpinan123',name:'Pimpinan RS',role:'PIMPINAN',inisial:''}};
+const ROLE_PAGES={ADMIN:['dashboard','input','data','evaluasi','rekapsebelum','rekapsesudah','perbandingan','checklist','panduan','hakakses','pengguna'],PETUGAS:['dashboard','input','data','checklist','panduan'],PIMPINAN:['dashboard','data','evaluasi','rekapsebelum','rekapsesudah','perbandingan','panduan']};
+
+// NOTE keamanan: login di bawah ini murni pengecekan di sisi browser (sama seperti
+// versi Apps Script sebelumnya) — cukup untuk membedakan tampilan/menu per peran,
+// TAPI bukan otentikasi yang aman untuk data produksi. Untuk keamanan sungguhan,
+// pindahkan pengecekan username/password ini ke sebuah API route (mis. /api/login)
+// dan simpan kredensial di Environment Variables, bukan di kode frontend.
+
+// Colour language borrowed straight from the partograph itself:
+// under the alert line = danger (red), between alert & action = caution (amber), clear = safe (green)
+function statusColor(pct){
+  if(pct < 50) return getComputedStyle(document.documentElement).getPropertyValue('--action').trim();
+  if(pct < 80) return getComputedStyle(document.documentElement).getPropertyValue('--alert').trim();
+  return getComputedStyle(document.documentElement).getPropertyValue('--patuh').trim();
+}
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';t.style.animation='none';void t.offsetWidth;t.style.animation='toastIn .3s cubic-bezier(.2,.8,.2,1) both';clearTimeout(window._toast);window._toast=setTimeout(()=>t.style.display='none',3000)}
+function showError(id,error){document.getElementById(id).innerHTML='<div class="error-box"><b>Data belum dapat dimuat.</b><br>'+String(error&&error.message||error||'Terjadi kesalahan.')+'<br><button class="btn secondary" style="margin-top:10px" onclick="location.reload()">Muat ulang</button></div>'}
+
+/**
+ * Pembungkus fetch() dengan penanganan error yang jelas:
+ *  - kalau jaringan gagal total -> pesan "tidak dapat terhubung"
+ *  - kalau server balas non-2xx / bukan JSON valid -> ambil pesan "error" dari body
+ *    kalau ada, atau tampilkan status HTTP-nya
+ * Ini yang membuat kegagalan konfigurasi (mis. env var Google belum diisi)
+ * langsung terlihat sebagai pesan yang jelas di layar, bukan "loading" selamanya.
+ */
+async function apiFetch(url, options){
+  let res;
+  try{
+    res = await fetch(url, options);
+  }catch(networkErr){
+    throw new Error('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+  }
+  const text = await res.text();
+  let body = null;
+  try{ body = text ? JSON.parse(text) : null; }catch(parseErr){ body = null; }
+  if(!res.ok){
+    const msg = (body && body.error) ? body.error : ('Server mengembalikan status ' + res.status + '.');
+    throw new Error(msg);
+  }
+  return body;
+}
+
+function loginApp(){
+ const u=document.getElementById('loginUser').value.trim().toLowerCase(),p=document.getElementById('loginPass').value,e=document.getElementById('loginError');e.style.display='none';
+ if(!u||!p){e.textContent='Username dan password wajib diisi.';e.style.display='block';return;}
+ if(!USERS[u]||USERS[u].password!==p){e.textContent='Username atau password salah.';e.style.display='block';return;}
+ currentUser={username:u,name:USERS[u].name,role:USERS[u].role};localStorage.setItem('ptepat_user',JSON.stringify(currentUser));enterApp();
+}
+function enterApp(){
+ document.getElementById('loginScreen').style.display='none';document.getElementById('sidePremium').style.display='block';document.getElementById('premiumMain').style.display='block';
+ document.getElementById('sideName').textContent=currentUser.name;document.getElementById('sideRole').textContent=currentUser.role;
+ const bidan=document.getElementById('bidan'); if(bidan && currentUser.inisial){ bidan.value=currentUser.inisial; bidan.readOnly=true; } else if(bidan){ bidan.readOnly=false; }
+ document.querySelectorAll('.side-link[data-role]').forEach(x=>{x.style.display=x.dataset.role.split(',').includes(currentUser.role)?'flex':'none'});
+ showPage('dashboard');
+ refreshBadgeQuiet();
+}
+function logoutApp(){localStorage.removeItem('ptepat_user');currentUser=null;location.reload()}
+function showPage(name){
+ if(!currentUser)return;
+ const allowed=ROLE_PAGES[currentUser.role]||[];if(!allowed.includes(name)){toast('Anda tidak memiliki hak akses untuk menu ini.');return;}
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));const target=document.getElementById(name);if(!target)return;target.classList.add('active');
+ document.querySelectorAll('.side-link[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===name));
+ if(name==='dashboard')loadDashboard();if(name==='pengguna')loadUsers();if(name==='data')loadData();if(name==='evaluasi')loadEvaluasi();if(name==='rekapsebelum'||name==='rekapsesudah'||name==='perbandingan')loadRekap();
+}
+function loadUsers(){
+ const el=document.getElementById('userTable');
+ el.innerHTML=Object.keys(USERS).map((k,i)=>'<tr style="--i:'+i+'"><td>'+k+'</td><td>'+USERS[k].name+'</td><td>'+USERS[k].role+'</td></tr>').join('');
+}
+function loadDashboard(){
+ const el=document.getElementById('dashboardContent');el.innerHTML='<div class="loading">Memuat data...</div>';
+ apiFetch('/api/dashboard').then(function(data){
+  const b=(Number(data.sebelum.persentase||0)*100).toFixed(1),s=(Number(data.sesudah.persentase||0)*100).toFixed(1),p=(Number(data.peningkatan||0)*100).toFixed(1);
+  const cb=statusColor(b), cs=statusColor(s);
+  el.innerHTML='<div class="cards"><div class="card"><h3>Partograf Sebelum</h3><div class="number">'+data.sebelum.jumlah+'</div></div><div class="card" style="border-left-color:'+cb+'"><h3>Kepatuhan Sebelum</h3><div class="number" style="color:'+cb+'">'+b+'%</div></div><div class="card"><h3>Partograf Sesudah</h3><div class="number">'+data.sesudah.jumlah+'</div></div><div class="card" style="border-left-color:'+cs+'"><h3>Kepatuhan Sesudah</h3><div class="number" style="color:'+cs+'">'+s+'%</div></div><div class="card"><h3>Peningkatan</h3><div class="number">'+(p>=0?'+':'')+p+'%</div></div></div><div class="chart"><h3>Grafik Kepatuhan <span style="font-size:11px;color:var(--ink-soft);font-family:var(--mono);font-weight:400">— skala warna garis waspada / bertindak partograf</span></h3><div class="bar-container"><div class="bar-label">Sebelum: '+b+'%</div><div class="bar"><div class="bar-value" style="--w:'+Math.min(100,Math.max(0,b))+'%;background:'+cb+'">'+b+'%</div></div></div><div class="bar-container"><div class="bar-label">Sesudah: '+s+'%</div><div class="bar"><div class="bar-value" style="--w:'+Math.min(100,Math.max(0,s))+'%;background:'+cs+'">'+s+'%</div></div></div></div>';
+ }).catch(e=>showError('dashboardContent',e));
+}
+function simpanData(){
+ const data={tanggal:val('tanggal'),kode:val('kode'),bidan:val('bidan'),tertib:val('tertib'),efektif:val('efektif'),profesional:val('profesional'),akurat:val('akurat'),tepatWaktu:val('tepatWaktu'),status:val('status'),keterangan:val('keterangan')};
+ if(!data.tanggal||!data.kode||!data.bidan||!data.status){toast('Tanggal, kode Partograf, inisial bidan, dan status wajib diisi.');return;}
+ const comps=['tertib','efektif','profesional','akurat','tepatWaktu'];if(comps.some(k=>!data[k])){toast('Lima komponen TEPAT wajib dinilai.');return;}
+ apiFetch('/api/monitoring',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+  .then(r=>{toast((r.message||'Data tersimpan.')+' ('+(r.statusKepatuhan||'')+' '+(r.skor!=null?r.skor+'/5':'')+')');document.querySelectorAll('#input input,#input select,#input textarea').forEach(x=>x.value='');updateScore();showPage('dashboard');refreshBadgeQuiet()})
+  .catch(e=>toast('Gagal menyimpan: '+e.message));
+}
+function val(id){return document.getElementById(id).value}
+function currentFilter(){
+ return {
+   tanggalDari: val('filterDari'),
+   tanggalSampai: val('filterSampai'),
+   status: val('filterStatus'),
+   bidan: val('filterBidan'),
+   kode: val('filterKode')
+ };
+}
+function resetFilter(){
+ ['filterDari','filterSampai','filterStatus','filterBidan','filterKode'].forEach(id=>document.getElementById(id).value='');
+ loadData();
+}
+function buildQuery(params){
+ const qs=new URLSearchParams();
+ Object.keys(params).forEach(k=>{ if(params[k]) qs.set(k, params[k]); });
+ const s=qs.toString();
+ return s ? ('?'+s) : '';
+}
+function loadData(){
+ const el=document.getElementById('dataContent');el.innerHTML='<div class="loading">Memuat data...</div>';
+ apiFetch('/api/monitoring'+buildQuery(currentFilter())).then(function(data){
+  if(!data.length){el.innerHTML='<div class="empty-box">Tidak ada data yang cocok dengan filter saat ini.</div>';return;}
+  let h='<div style="overflow:auto"><table id="dataTablePrint"><thead><tr><th>No</th><th>Tanggal</th><th>Kode</th><th>Bidan</th><th>Tertib</th><th>Efektif</th><th>Profesional</th><th>Akurat</th><th>Tepat Waktu</th><th>Skor</th><th>Status</th><th>Monitoring</th><th>Keterangan</th><th class="no-print">Aksi</th></tr></thead><tbody>';
+  data.forEach((r,i)=>{h+='<tr style="--i:'+i+'"><td>'+esc(r.no)+'</td><td>'+esc(r.tanggal)+'</td><td>'+esc(r.kode)+'</td><td>'+esc(r.bidan)+'</td><td>'+esc(r.tertib)+'</td><td>'+esc(r.efektif)+'</td><td>'+esc(r.profesional)+'</td><td>'+esc(r.akurat)+'</td><td>'+esc(r.tepatWaktu)+'</td><td>'+esc(r.skor)+'</td><td class="'+(r.statusKepatuhan==='PATUH'?'patuh':'belum')+'">'+esc(r.statusKepatuhan)+'</td><td>'+esc(r.statusMonitoring)+'</td><td>'+esc(r.keterangan||'')+'</td><td class="no-print"><button class="btn secondary" style="margin:0;padding:6px 10px;font-size:11.5px" onclick="hapusData('+r.rowNumber+',\''+esc(r.kode)+'\')">🗑 Hapus</button></td></tr>'});
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
+  updateBadge(data);
+ }).catch(e=>showError('dataContent',e));
+}
+function hapusData(rowNum,kode){
+ if(!confirm('Hapus data monitoring dengan kode "'+kode+'"? Tindakan ini tidak dapat dibatalkan.'))return;
+ apiFetch('/api/monitoring?row='+rowNum,{method:'DELETE'})
+  .then(r=>{toast(r.message||'Data dihapus.');loadData()})
+  .catch(e=>toast('Gagal menghapus: '+e.message));
+}
+function printData(){
+ window.print();
+}
+function updateBadge(rows){
+ const badge=document.getElementById('badgeBelumPatuh');
+ if(!badge)return;
+ const belum=rows.filter(r=>String(r.statusKepatuhan).trim().toUpperCase()==='BELUM PATUH').length;
+ if(belum>0){ badge.style.display='inline-flex'; badge.textContent=belum>99?'99+':belum; }
+ else{ badge.style.display='none'; }
+}
+function refreshBadgeQuiet(){
+ apiFetch('/api/monitoring').then(rows=>updateBadge(rows)).catch(()=>{});
+}
+function loadEvaluasi(){loadRekap('evaluasi')}
+function loadRekap(){
+ const target=document.querySelector('.page.active');const id=target?target.id:'evaluasi';const el=document.getElementById(id==='evaluasi'?'evaluasiContent':id==='rekapsebelum'?'rekapSebelumContent':id==='rekapsesudah'?'rekapSesudahContent':'perbandinganContent');el.innerHTML='<div class="loading">Memuat data...</div>';
+ apiFetch('/api/dashboard').then(function(d){const b=d.sebelum,s=d.sesudah,p=d.peningkatan; if(id==='rekapsebelum'||id==='rekapsesudah'){const x=id==='rekapsebelum'?b:s;el.innerHTML=rekapCard(id==='rekapsebelum'?'SEBELUM':'SESUDAH',x);return;}const bp=(b.persentase*100).toFixed(1),sp=(s.persentase*100).toFixed(1),pp=(p*100).toFixed(1);el.innerHTML='<div class="hak-card"><table><tr><th>Indikator</th><th>Sebelum</th><th>Sesudah</th><th>Perubahan</th></tr><tr><td>Jumlah Partograf</td><td>'+b.jumlah+'</td><td>'+s.jumlah+'</td><td>'+(s.jumlah-b.jumlah)+'</td></tr><tr><td>Jumlah Patuh</td><td>'+b.patuh+'</td><td>'+s.patuh+'</td><td>'+(s.patuh-b.patuh)+'</td></tr><tr><td>Belum Patuh</td><td>'+b.belumPatuh+'</td><td>'+s.belumPatuh+'</td><td>'+(s.belumPatuh-b.belumPatuh)+'</td></tr><tr><td><b>Kepatuhan</b></td><td><b>'+bp+'%</b></td><td><b>'+sp+'%</b></td><td><b>'+pp+'%</b></td></tr></table></div>'}).catch(e=>showError(el.id,e));
+}
+function rekapCard(title,x){const c=statusColor((x.persentase*100));return '<div class="hak-grid"><div class="hak-card"><h3>Jumlah Partograf</h3><div class="number">'+x.jumlah+'</div></div><div class="hak-card"><h3>Jumlah Patuh</h3><div class="number" style="color:var(--patuh)">'+x.patuh+'</div></div><div class="hak-card"><h3>Belum Patuh</h3><div class="number" style="color:var(--action)">'+x.belumPatuh+'</div></div><div class="hak-card"><h3>Persentase Kepatuhan</h3><div class="number" style="color:'+c+'">'+(x.persentase*100).toFixed(1)+'%</div></div></div>'}
+function esc(v){return String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
+function updateScore(){const ids=['tertib','efektif','profesional','akurat','tepatWaktu'];const score=ids.reduce((n,id)=>n+(val(id)==='Ya'?1:0),0);const sp=document.getElementById('scorePreview'),st=document.getElementById('statusPreview'),box=st.closest('.score-preview');sp.textContent=score+' / 5';st.textContent=score===5?'PATUH':score>0?'BELUM PATUH':'Belum dinilai';const c=score===5?getComputedStyle(document.documentElement).getPropertyValue('--patuh'):score>0?getComputedStyle(document.documentElement).getPropertyValue('--action'):getComputedStyle(document.documentElement).getPropertyValue('--ink-soft');st.style.color=c.trim();box.style.borderColor=c.trim();}
+document.addEventListener('DOMContentLoaded',()=>{['tertib','efektif','profesional','akurat','tepatWaktu'].forEach(id=>document.getElementById(id).addEventListener('change',updateScore));});
+window.addEventListener('load',()=>{try{currentUser=JSON.parse(localStorage.getItem('ptepat_user')||'null')}catch(e){currentUser=null}if(currentUser&&USERS[currentUser.username])enterApp();});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&['loginUser','loginPass'].includes(document.activeElement.id))loginApp();});
+</script>
+
+</body>
+
+</html>

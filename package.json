@@ -1,0 +1,12 @@
+{
+  "name": "partograf-tepat",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monitoring kepatuhan dokumentasi Partograf TEPAT - RSU Hoba Kalla, Sumba Barat",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "googleapis": "^126.0.1"
+  }
+}
