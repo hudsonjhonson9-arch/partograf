@@ -1,18 +1,13 @@
 const SPREADSHEET_ID = '1iVaAJRkl5Hp30iK7PeF3MHqqWR0UUriHQPFCyD-IIO8';
 
 const SHEETS = {
-  DASHBOARD: 'DASHBOARD',
   DATA: 'DATA MONITORING',
   CHECKLIST: 'CHECKLIST TEPAT',
-  SEBELUM: 'REKAP SEBELUM',
-  SESUDAH: 'REKAP SESUDAH',
-  PERBANDINGAN: 'PERBANDINGAN',
   PANDUAN: 'PANDUAN',
   AUDIT: 'AUDIT_LOG'
 };
 
 const KOMPONEN_TEPAT = ['tertib', 'efektif', 'profesional', 'akurat', 'tepatWaktu'];
-const KOMPONEN_KOLOM = { tertib: 5, efektif: 6, profesional: 7, akurat: 8, tepatWaktu: 9 }; // kolom E-I
 const STATUS_VALID = ['SEBELUM', 'SESUDAH'];
 const YA_TIDAK_VALID = ['Ya', 'Tidak'];
 
@@ -114,6 +109,12 @@ function jsonOut_(obj) {
  * Urutan kolom sheet: A..M = indeks 0..12, ditambah indeks 13 = nomor baris.
  */
 function toMonitoringObject_(row) {
+  const skor =
+    (row[4] === 'Ya' ? 1 : 0) +
+    (row[5] === 'Ya' ? 1 : 0) +
+    (row[6] === 'Ya' ? 1 : 0) +
+    (row[7] === 'Ya' ? 1 : 0) +
+    (row[8] === 'Ya' ? 1 : 0);
   return {
     no: row[0],
     tanggal: row[1],
@@ -124,11 +125,11 @@ function toMonitoringObject_(row) {
     profesional: row[6],
     akurat: row[7],
     tepatWaktu: row[8],
-    skor: row[9],
-    statusKepatuhan: row[10],
-    statusMonitoring: row[11],
-    keterangan: row[12],
-    rowNumber: row[13]
+    skor: skor,
+    statusKepatuhan: skor === 5 ? 'PATUH' : 'BELUM PATUH',
+    statusMonitoring: row[9],
+    keterangan: row[10],
+    rowNumber: row[11]
   };
 }
 
@@ -169,7 +170,6 @@ function getSpreadsheet() {
       mengecek satu-satu setiap kali.
 ========================= */
 
-const DATA_PREFILL_ROWS = 200; // jumlah baris formula yang disiapkan di muka pada sheet DATA MONITORING
 const INIT_FLAG_KEY = 'PTEPAT_STRUKTUR_SIAP_V2';
 
 /**
@@ -224,12 +224,11 @@ function setupSpreadsheet() {
   // lembar terakhir saat kita membangun ulang seluruh struktur.
   const temp = ss.insertSheet('__tmp_setup__' + new Date().getTime());
 
-  // Hapus sheet lama supaya struktur (header, formula, validasi) dibangun
-  // ulang SELURUHNYA. Ini juga mengatasi sheet yang pernah dibuat oleh
-  // versi code.gs lama dengan layout kolom berbeda (penyebab #ERROR!).
-  Object.keys(SHEETS).forEach(function (key) {
-    const sh = ss.getSheetByName(SHEETS[key]);
-    if (sh) {
+  // Hapus SELURUH lembar lama (termasuk sisa DASHBOARD / REKAP / PERBANDINGAN
+  // dari versi sebelumnya) supaya struktur dibangun ulang bersih. Spreadsheet
+  // kini hanya menyimpan DATA MENTAH; semua perhitungan dilakukan di kode.
+  ss.getSheets().forEach(sh => {
+    if (sh.getName() !== temp.getName()) {
       ss.deleteSheet(sh);
     }
   });
@@ -263,17 +262,9 @@ function resetStrukturSheet() {
 }
 
 function buildAllSheets_(ss) {
-  createDashboardSheet(ss);
-  SpreadsheetApp.flush();
   createDataMonitoringSheet(ss);
   SpreadsheetApp.flush();
   createChecklistSheet(ss);
-  SpreadsheetApp.flush();
-  createRekapSheet(ss, SHEETS.SEBELUM, 'SEBELUM');
-  SpreadsheetApp.flush();
-  createRekapSheet(ss, SHEETS.SESUDAH, 'SESUDAH');
-  SpreadsheetApp.flush();
-  createPerbandinganSheet(ss);
   SpreadsheetApp.flush();
   createPanduanSheet(ss);
   SpreadsheetApp.flush();
@@ -283,89 +274,21 @@ function buildAllSheets_(ss) {
 
 
 /* =========================
-   DASHBOARD
-========================= */
-
-function createDashboardSheet(ss) {
-
-  let sheet = ss.getSheetByName(SHEETS.DASHBOARD);
-
-  if (sheet) {
-    return; // sudah ada, tidak perlu dibangun ulang
-  }
-
-  sheet = ss.insertSheet(SHEETS.DASHBOARD);
-
-  sheet.getRange('A1').setValue(
-    'DASHBOARD MONITORING KEPATUHAN PARTOGRAF TEPAT'
-  );
-
-  sheet.getRange('A2').setValue(
-    'RSU Hoba Kalla Kabupaten Sumba Barat'
-  );
-
-  sheet.getRange('A4').setValue('Jumlah Partograf Sebelum');
-  sheet.getRange('C4').setValue('Kepatuhan Sebelum');
-  sheet.getRange('E4').setValue('Jumlah Partograf Sesudah');
-  sheet.getRange('G4').setValue('Kepatuhan Sesudah');
-  sheet.getRange('A7').setValue('Peningkatan Kepatuhan');
-
-  sheet.getRange('A5').setFormula(
-    `='${SHEETS.SEBELUM}'!B4`
-  );
-
-  sheet.getRange('C5').setFormula(
-    `='${SHEETS.SEBELUM}'!B7`
-  );
-
-  sheet.getRange('E5').setFormula(
-    `='${SHEETS.SESUDAH}'!B4`
-  );
-
-  sheet.getRange('G5').setFormula(
-    `='${SHEETS.SESUDAH}'!B7`
-  );
-
-  sheet.getRange('A8').setFormula(
-    `='${SHEETS.PERBANDINGAN}'!D7`
-  );
-
-  sheet.getRange('C5').setNumberFormat('0.0%');
-  sheet.getRange('G5').setNumberFormat('0.0%');
-  sheet.getRange('A8').setNumberFormat('0.0%');
-
-  sheet.getRange('A1:H1')
-    .merge()
-    .setFontSize(18)
-    .setFontWeight('bold')
-    .setHorizontalAlignment('center');
-
-  sheet.getRange('A2:H2')
-    .merge()
-    .setHorizontalAlignment('center');
-
-  sheet.getRange('A4:H4')
-    .setFontWeight('bold');
-
-  sheet.getRange('A1:H8')
-    .setVerticalAlignment('middle');
-}
-
-
-/* =========================
-   DATA MONITORING
-========================= */
+    DATA MONITORING  (DATA MENTAH — tanpa formula)
+ ========================= */
 
 function createDataMonitoringSheet(ss) {
 
   let sheet = ss.getSheetByName(SHEETS.DATA);
 
   if (sheet) {
-    return; // sudah ada, tidak perlu dibangun ulang (mencegah proses berat berulang)
+    return; // sudah ada, tidak perlu dibangun ulang
   }
 
   sheet = ss.insertSheet(SHEETS.DATA);
 
+  // HANYA data mentah. Tidak ada formula: Skor & Status Kepatuhan
+  // dihitung di kode (Apps Script/API), bukan di dalam sheet.
   const headers = [
     'No',
     'Tanggal',
@@ -376,8 +299,6 @@ function createDataMonitoringSheet(ss) {
     'Profesional',
     'Akurat',
     'Tepat Waktu',
-    'Skor TEPAT',
-    'Status Kepatuhan',
     'Status Monitoring',
     'Keterangan'
   ];
@@ -390,99 +311,33 @@ function createDataMonitoringSheet(ss) {
     .setHorizontalAlignment('center')
     .setWrap(true);
 
-  // Formula No/Skor/Status untuk sejumlah baris disiapkan di muka.
-  // PENTING: dibangun sebagai array lalu ditulis SEKALIGUS lewat
-  // setFormulas() — bukan setFormula() satu-per-satu dalam loop.
-  // Cara lama (loop 1000x, masing-masing 3 panggilan API) adalah
-  // penyebab Dashboard "loading" tanpa henti / timeout.
-  const n = DATA_PREFILL_ROWS;
-  const colA = [], colJ = [], colK = [];
-
-  for (let i = 0; i < n; i++) {
-    const r = i + 2;
-    colA.push([`=IF(C${r}="";"";ROW()-1)`]);
-    colJ.push([`=IF(C${r}="";"";COUNTIF(E${r}:I${r};"Ya"))`]);
-    colK.push([`=IF(C${r}="";"";IF(J${r}=5;"PATUH";"BELUM PATUH"))`]);
-  }
-
-  sheet.getRange(2, 1, n, 1).setFormulas(colA);
-  sheet.getRange(2, 10, n, 1).setFormulas(colJ);
-  sheet.getRange(2, 11, n, 1).setFormulas(colK);
-
-  // Dropdown Ya/Tidak
+  // Validasi dropdown untuk input manual (opsional).
+  const n = 1000;
   const yesNoRule = SpreadsheetApp.newDataValidation()
     .requireValueInList(YA_TIDAK_VALID, true)
     .setAllowInvalid(false)
     .build();
 
-  sheet.getRange(2, 5, n, 5) // E2:I(n+1)
+  sheet.getRange(2, 5, n, 5) // E:I (P, C, T, A, K)
     .setDataValidation(yesNoRule);
 
-  // Dropdown status
   const statusRule = SpreadsheetApp.newDataValidation()
     .requireValueInList(STATUS_VALID, true)
     .setAllowInvalid(false)
     .build();
 
-  sheet.getRange(2, 12, n, 1) // L2:L(n+1)
+  sheet.getRange(2, 10, n, 1) // J (Status Monitoring)
     .setDataValidation(statusRule);
 
   sheet.setFrozenRows(1);
-  sheet.getRange('A:M').setVerticalAlignment('middle');
-  sheet.getRange('A:M').setWrap(true);
-}
-
-
-/**
- * Memastikan baris ke depan (di luar rentang prefill awal) tetap punya
- * formula No/Skor/Status saat sheet sudah dipakai bertahun-tahun dan
- * baris data melebihi DATA_PREFILL_ROWS. Ditulis dalam batch, aman
- * dipanggil kapan saja (mis. dari trigger terjadwal bulanan), TIDAK
- * dipanggil otomatis setiap request supaya tetap ringan.
- */
-function perluasFormulaDataMonitoring(sampaiBaris) {
-
-  const sheet = getSpreadsheet().getSheetByName(SHEETS.DATA);
-  const target = Number(sampaiBaris) || (sheet.getLastRow() + 200);
-  const mulai = Math.max(2, sheet.getMaxRows() > 1 ? sheet.getLastRow() + 1 : 2);
-
-  if (target < mulai) {
-    return 'Tidak ada baris baru yang perlu diperluas.';
-  }
-
-  const n = target - mulai + 1;
-  const colA = [], colJ = [], colK = [];
-
-   for (let i = 0; i < n; i++) {
-     const r = mulai + i;
-     colA.push([`=IF(C${r}="";"";ROW()-1)`]);
-     colJ.push([`=IF(C${r}="";"";COUNTIF(E${r}:I${r};"Ya"))`]);
-     colK.push([`=IF(C${r}="";"";IF(J${r}=5;"PATUH";"BELUM PATUH"))`]);
-   }
-
-  sheet.getRange(mulai, 1, n, 1).setFormulas(colA);
-  sheet.getRange(mulai, 10, n, 1).setFormulas(colJ);
-  sheet.getRange(mulai, 11, n, 1).setFormulas(colK);
-
-  const yesNoRule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(YA_TIDAK_VALID, true)
-    .setAllowInvalid(false)
-    .build();
-  sheet.getRange(mulai, 5, n, 5).setDataValidation(yesNoRule);
-
-  const statusRule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(STATUS_VALID, true)
-    .setAllowInvalid(false)
-    .build();
-  sheet.getRange(mulai, 12, n, 1).setDataValidation(statusRule);
-
-  return 'Formula diperluas sampai baris ' + target + '.';
+  sheet.getRange('A:K').setVerticalAlignment('middle');
+  sheet.getRange('A:K').setWrap(true);
 }
 
 
 /* =========================
-   CHECKLIST TEPAT
-========================= */
+    CHECKLIST TEPAT
+ ========================= */
 
 function createChecklistSheet(ss) {
 
@@ -556,143 +411,8 @@ function createChecklistSheet(ss) {
 
 
 /* =========================
-   REKAP
-========================= */
-
-function createRekapSheet(ss, sheetName, status) {
-
-  let sheet = ss.getSheetByName(sheetName);
-
-  if (sheet) {
-    return; // sudah ada, tidak perlu dibangun ulang
-  }
-
-  sheet = ss.insertSheet(sheetName);
-
-  sheet.getRange('A1')
-    .setValue('REKAP MONITORING ' + status)
-    .setFontWeight('bold')
-    .setFontSize(16);
-
-  sheet.getRange('A3:B3')
-    .setValues([
-      ['Indikator', 'Nilai']
-    ])
-    .setFontWeight('bold');
-
-  sheet.getRange('A4').setValue('Jumlah Partograf');
-
-  sheet.getRange('B4').setFormula(
-    `=COUNTIF('${SHEETS.DATA}'!L:L;"${status}")`
-  );
-
-  sheet.getRange('A5').setValue('Jumlah Patuh');
-
-  sheet.getRange('B5').setFormula(
-    `=COUNTIFS('${SHEETS.DATA}'!L:L;"${status}";'${SHEETS.DATA}'!K:K;"PATUH")`
-  );
-
-  sheet.getRange('A6').setValue('Jumlah Belum Patuh');
-
-  sheet.getRange('B6').setFormula(
-    `=COUNTIFS('${SHEETS.DATA}'!L:L;"${status}";'${SHEETS.DATA}'!K:K;"BELUM PATUH")`
-  );
-
-  sheet.getRange('A7').setValue(
-    'Persentase Kepatuhan'
-  );
-
-  sheet.getRange('B7').setFormula(
-    '=IFERROR(B5/B4;0)'
-  );
-
-  sheet.getRange('B7')
-    .setNumberFormat('0.0%');
-}
-
-
-/* =========================
-   PERBANDINGAN
-========================= */
-
-function createPerbandinganSheet(ss) {
-
-  let sheet = ss.getSheetByName(SHEETS.PERBANDINGAN);
-
-  if (sheet) {
-    return; // sudah ada, tidak perlu dibangun ulang
-  }
-
-  sheet = ss.insertSheet(SHEETS.PERBANDINGAN);
-
-  sheet.getRange('A1')
-    .setValue(
-      'PERBANDINGAN HASIL MONITORING SEBELUM DAN SESUDAH'
-    )
-    .setFontWeight('bold')
-    .setFontSize(16);
-
-  sheet.getRange('A3:D3')
-    .setValues([
-      [
-        'Indikator',
-        'SEBELUM',
-        'SESUDAH',
-        'Perubahan'
-      ]
-    ])
-    .setFontWeight('bold');
-
-  sheet.getRange('A4').setValue('Jumlah Partograf');
-  sheet.getRange('A5').setValue('Jumlah Patuh');
-  sheet.getRange('A6').setValue('Jumlah Belum Patuh');
-  sheet.getRange('A7').setValue('Persentase Kepatuhan');
-
-  sheet.getRange('B4').setFormula(
-    `='${SHEETS.SEBELUM}'!B4`
-  );
-
-  sheet.getRange('C4').setFormula(
-    `='${SHEETS.SESUDAH}'!B4`
-  );
-
-  sheet.getRange('B5').setFormula(
-    `='${SHEETS.SEBELUM}'!B5`
-  );
-
-  sheet.getRange('C5').setFormula(
-    `='${SHEETS.SESUDAH}'!B5`
-  );
-
-  sheet.getRange('B6').setFormula(
-    `='${SHEETS.SEBELUM}'!B6`
-  );
-
-  sheet.getRange('C6').setFormula(
-    `='${SHEETS.SESUDAH}'!B6`
-  );
-
-  sheet.getRange('B7').setFormula(
-    `='${SHEETS.SEBELUM}'!B7`
-  );
-
-  sheet.getRange('C7').setFormula(
-    `='${SHEETS.SESUDAH}'!B7`
-  );
-
-  sheet.getRange('D4').setFormula('=C4-B4');
-  sheet.getRange('D5').setFormula('=C5-B5');
-  sheet.getRange('D6').setFormula('=C6-B6');
-  sheet.getRange('D7').setFormula('=C7-B7');
-
-  sheet.getRange('B7:D7')
-    .setNumberFormat('0.0%');
-}
-
-
-/* =========================
-   PANDUAN
-========================= */
+    PANDUAN
+ ========================= */
 
 function createPanduanSheet(ss) {
 
@@ -735,39 +455,49 @@ function createPanduanSheet(ss) {
 
 
 /* =========================
-   DATA UNTUK DASHBOARD WEB
-========================= */
+    DATA UNTUK DASHBOARD WEB  (dihitung di kode, bukan di sheet)
+ ========================= */
 
 function getDashboardData() {
 
   ensureSpreadsheetReady_();
 
-  const ss = getSpreadsheet();
+  // Agregat dihitung dari data mentah di sheet DATA MONITORING.
+  const items = getMonitoringData().map(toMonitoringObject_);
 
-  const sebelum = ss.getSheetByName(SHEETS.SEBELUM);
-  const sesudah = ss.getSheetByName(SHEETS.SESUDAH);
+  const sb = { jumlah: 0, patuh: 0, belumPatuh: 0 };
+  const sd = { jumlah: 0, patuh: 0, belumPatuh: 0 };
 
-  const result = {
-    sebelum: {
-      jumlah: sebelum.getRange('B4').getValue(),
-      patuh: sebelum.getRange('B5').getValue(),
-      belumPatuh: sebelum.getRange('B6').getValue(),
-      persentase: sebelum.getRange('B7').getValue()
-    },
-
-    sesudah: {
-      jumlah: sesudah.getRange('B4').getValue(),
-      patuh: sesudah.getRange('B5').getValue(),
-      belumPatuh: sesudah.getRange('B6').getValue(),
-      persentase: sesudah.getRange('B7').getValue()
+  items.forEach(it => {
+    const grp = String(it.statusMonitoring || '').trim().toUpperCase();
+    const patuh = it.statusKepatuhan === 'PATUH';
+    if (grp === 'SEBELUM') {
+      sb.jumlah++;
+      if (patuh) { sb.patuh++; } else { sb.belumPatuh++; }
+    } else if (grp === 'SESUDAH') {
+      sd.jumlah++;
+      if (patuh) { sd.patuh++; } else { sd.belumPatuh++; }
     }
+  });
+
+  const sbPct = sb.jumlah ? sb.patuh / sb.jumlah : 0;
+  const sdPct = sd.jumlah ? sd.patuh / sd.jumlah : 0;
+
+  return {
+    sebelum: {
+      jumlah: sb.jumlah,
+      patuh: sb.patuh,
+      belumPatuh: sb.belumPatuh,
+      persentase: sbPct
+    },
+    sesudah: {
+      jumlah: sd.jumlah,
+      patuh: sd.patuh,
+      belumPatuh: sd.belumPatuh,
+      persentase: sdPct
+    },
+    peningkatan: sdPct - sbPct
   };
-
-  result.peningkatan =
-    result.sesudah.persentase -
-    result.sebelum.persentase;
-
-  return result;
 }
 
 
@@ -790,7 +520,7 @@ function getMonitoringData(filter) {
   }
 
   let rows = sheet
-    .getRange(2, 1, lastRow - 1, 13)
+    .getRange(2, 1, lastRow - 1, 11)
     .getDisplayValues()
     .map((row, i) => row.concat([i + 2])) // kolom ke-14 = nomor baris asli di sheet
     .filter(row => row[2] !== '');
@@ -819,7 +549,7 @@ function applyMonitoringFilter_(rows, filter) {
 
   return rows.filter(row => {
 
-    if (status && String(row[11]).trim().toUpperCase() !== status) {
+    if (status && String(row[9]).trim().toUpperCase() !== status) {
       return false;
     }
 
@@ -971,7 +701,7 @@ function isDuplicateEntry_(sheet, kode, status, ignoreRow) {
   }
 
   const kodeCol = sheet.getRange(2, 3, lastRow - 1, 1).getValues();
-  const statusCol = sheet.getRange(2, 12, lastRow - 1, 1).getValues();
+  const statusCol = sheet.getRange(2, 10, lastRow - 1, 1).getValues();
 
   for (let i = 0; i < kodeCol.length; i++) {
     const currentRow = i + 2;
@@ -1018,6 +748,13 @@ function saveMonitoring(data) {
 
   const keterangan = data.keterangan ? String(data.keterangan).trim() : '';
 
+  const skor =
+    (data.tertib === 'Ya' ? 1 : 0) +
+    (data.efektif === 'Ya' ? 1 : 0) +
+    (data.profesional === 'Ya' ? 1 : 0) +
+    (data.akurat === 'Ya' ? 1 : 0) +
+    (data.tepatWaktu === 'Ya' ? 1 : 0);
+
   const values = [
     '',
     parseDateSafe_(data.tanggal),
@@ -1028,26 +765,15 @@ function saveMonitoring(data) {
     data.profesional,
     data.akurat,
     data.tepatWaktu,
-    '',
-    '',
     status,
     keterangan
   ];
 
   sheet.appendRow(values);
 
-  const skor = KOMPONEN_TEPAT.reduce((n, key) => n + (data[key] === 'Ya' ? 1 : 0), 0);
   const row = sheet.getLastRow();
-
-  // No (kolom A) tetap pakai formula; Skor & Status ditulis sebagai NILAI
-  // (sudah dihitung di JS) agar tidak bergantung pemisah argumen formula
-  // (lokasi id_ID memakai ";"), sehingga bebas #ERROR! pada setiap simpan.
-  sheet.getRange(row, 1).setFormula(
-    `=IF(C${row}="";"";ROW()-1)`
-  );
-
-  sheet.getRange(row, 10).setValue(skor);
-  sheet.getRange(row, 11).setValue(skor === 5 ? 'PATUH' : 'BELUM PATUH');
+  // No (kolom A) ditulis sebagai nilai nomor baris — tanpa formula apa pun.
+  sheet.getRange(row, 1).setValue(row);
 
   SpreadsheetApp.flush();
 
@@ -1084,7 +810,7 @@ function deleteMonitoring(rowNumber) {
     throw new Error('Baris tidak ditemukan.');
   }
 
-  const rowData = sheet.getRange(row, 1, 1, 13).getDisplayValues()[0];
+  const rowData = sheet.getRange(row, 1, 1, 11).getDisplayValues()[0];
   if (!rowData[2]) {
     throw new Error('Baris ini tidak berisi data monitoring.');
   }
@@ -1092,7 +818,7 @@ function deleteMonitoring(rowNumber) {
   sheet.deleteRow(row);
 
   writeAuditLog('HAPUS_MONITORING',
-    'Baris=' + row + '; Kode=' + rowData[2] + '; Status=' + rowData[11]
+    'Baris=' + row + '; Kode=' + rowData[2] + '; Status=' + rowData[9]
   );
 
   return {
