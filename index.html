@@ -433,12 +433,9 @@
 .login-tags .login-tag:nth-child(5){animation-delay:1s}
 @keyframes tagIn{ from{opacity:0; transform:translateY(5px);} to{opacity:1; transform:none;} }
 
-.login-right{ display:flex; align-items:center; justify-content:center; padding:32px; background:var(--paper); }
+.login-right{ display:flex; align-items:center; justify-content:center; padding:40px; background:var(--paper); }
 .login-box{
-  width:min(400px,100%); background:var(--card); border-radius:16px; padding:36px 32px;
-  box-shadow:0 20px 50px -16px rgba(10,40,36,.2); border:1px solid var(--line-grid);
-  opacity:0; transform: translateY(14px) scale(.98);
-  animation: boxIn .5s cubic-bezier(.2,.7,.2,1) .15s forwards;
+  width:min(380px,100%);
 }
 @keyframes boxIn{ to{ opacity:1; transform:none; } }
 .login-box h1{ text-align:center; font-size:26px; margin:8px 0 2px; color:var(--teal-deep); font-weight:700; }
