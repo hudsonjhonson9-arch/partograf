@@ -378,104 +378,86 @@
 /* ===== PARTOGRAF TEPAT — sign-in ===== */
 .login-screen{
   position:fixed; inset:0; z-index:9999; overflow:auto;
-  display:grid; grid-template-columns:1.08fr .92fr;
-  background:
-    linear-gradient(var(--paper), var(--paper)),
-    repeating-linear-gradient(0deg, var(--line-grid) 0 1px, transparent 1px 26px),
-    repeating-linear-gradient(90deg, var(--line-grid) 0 1px, transparent 1px 26px);
+  display:grid; grid-template-columns:1.1fr .9fr;
+  background: var(--paper);
 }
 .login-left{
-  position:relative; padding:40px 5vw; display:flex; flex-direction:column; justify-content:center;
-  overflow:hidden;
+  position:relative; padding:48px 6vw 40px; display:flex; flex-direction:column; justify-content:center;
+  overflow:hidden; background: linear-gradient(160deg, var(--teal-deep) 0%, #0a3d39 50%, #072925 100%);
+  color:#EFE9D8;
 }
-.gov-title{ font-family:var(--mono); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
-.rs-title{ font-family:var(--serif); font-weight:700; font-size:28px; color:var(--teal-deep); margin:4px 0 16px; }
-.pte-title{ font-family:var(--serif); font-size:clamp(40px,6vw,64px); line-height:.98; font-weight:600; color:var(--ink); letter-spacing:-.01em; }
-.pte-title span{ color:var(--action); font-style:italic; }
-.pte-sub{ font-size:15px; max-width:440px; color:var(--ink-soft); line-height:1.5; margin-top:12px; }
-
-.login-tags{ position:relative; z-index:4; display:flex; gap:7px; flex-wrap:wrap; margin-top:20px; }
-.login-tag{
-  background:#fff; border:1px solid var(--line-grid); border-radius:999px; padding:7px 13px;
-  font-size:11.5px; font-family:var(--mono); font-weight:600; color:var(--teal-deep);
-  opacity:0; animation:tagIn .4s ease forwards;
+.login-left::before{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(14,91,84,.4) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(192,138,42,.12) 0%, transparent 40%);
 }
-.login-tags .login-tag:nth-child(1){animation-delay:.55s}
-.login-tags .login-tag:nth-child(2){animation-delay:.65s}
-.login-tags .login-tag:nth-child(3){animation-delay:.75s}
-.login-tags .login-tag:nth-child(4){animation-delay:.85s}
-.login-tags .login-tag:nth-child(5){animation-delay:.95s}
-@keyframes tagIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+.login-left::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 1px, transparent 1px 32px);
+}
 
-/* signature element: an animated partograph line — the cervical
-   dilation curve crossing the alert line then the action line,
-   drawn on load like a pen tracing the chart */
-/* animated illustration on login */
+.gov-title{ font-family:var(--mono); font-weight:600; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:#7FB5AA; position:relative; z-index:2; }
+.rs-title{ font-family:var(--sans); font-weight:700; font-size:22px; color:#EFE9D8; margin:6px 0 0; position:relative; z-index:2; }
+.hero-headline{
+  font-family:var(--sans); font-size:clamp(32px,5vw,52px); line-height:1.05; font-weight:800;
+  color:#fff; letter-spacing:-.025em; margin:24px 0 0; position:relative; z-index:2;
+}
+.hero-headline em{ font-style:italic; color:var(--alert); }
+.hero-sub{ font-size:14.5px; max-width:400px; color:#B8D4CE; line-height:1.55; margin-top:12px; position:relative; z-index:2; }
+
 .login-illustration{
-  margin-top:22px; max-width:360px; position:relative; z-index:2;
-  opacity:0; animation:illustIn .8s cubic-bezier(.2,.7,.3,1) .4s forwards;
+  margin-top:28px; max-width:380px; width:70%; position:relative; z-index:2;
+  opacity:0; animation:illustIn .8s cubic-bezier(.2,.7,.3,1) .5s forwards;
 }
 .login-illustration img{
   width:100%; height:auto; display:block; border-radius:12px;
-  box-shadow:0 8px 24px -8px rgba(10,40,36,.25);
-  border:1.5px solid var(--line-grid);
+  box-shadow:0 16px 40px -12px rgba(0,0,0,.45);
+  border:1.5px solid rgba(255,255,255,.1);
 }
-@keyframes illustIn{ from{opacity:0; transform:translateY(14px) scale(.97);} to{opacity:1; transform:none;} }
-.login-illustration::after{
-  content:""; position:absolute; inset:-5px; border-radius:15px;
-  background:linear-gradient(135deg, rgba(14,91,84,.08), transparent 50%);
-  pointer-events:none; z-index:-1;
-}
-.partograph-signature{ margin-top:20px; max-width:420px; }
-.partograph-signature svg{ width:100%; height:auto; display:block; }
-.pg-grid-line{ stroke:var(--line-grid); stroke-width:1; }
-.pg-alert{ stroke:var(--alert); stroke-width:1.6; stroke-dasharray:5 4; }
-.pg-action{ stroke:var(--action); stroke-width:1.6; stroke-dasharray:5 4; }
-.pg-curve{
-  fill:none; stroke:var(--teal); stroke-width:3; stroke-linecap:round;
-  stroke-dasharray: 420; stroke-dashoffset: 420;
-  animation: drawCurve 2.1s cubic-bezier(.4,.1,.2,1) .3s forwards;
-}
-.pg-dot{
-  opacity:0; animation: dotIn .3s ease forwards;
-}
-.pg-dot:nth-of-type(1){ animation-delay: .5s; }
-.pg-dot:nth-of-type(2){ animation-delay: 1s; }
-.pg-dot:nth-of-type(3){ animation-delay: 1.5s; }
-.pg-dot:nth-of-type(4){ animation-delay: 2.0s; }
-@keyframes drawCurve{ to{ stroke-dashoffset:0; } }
-@keyframes dotIn{ from{ opacity:0; transform:scale(0);} to{ opacity:1; transform:scale(1);} }
-.pg-legend{ font-family:var(--mono); font-size:10px; }
-.pg-legend-alert{ fill:var(--alert); }
-.pg-legend-action{ fill:var(--action); }
+@keyframes illustIn{ from{opacity:0; transform:translateY(16px) scale(.97);} to{opacity:1; transform:none;} }
 
-.login-right{ display:flex; align-items:center; justify-content:center; padding:30px; }
+.login-tags{ position:relative; z-index:2; display:flex; gap:6px; flex-wrap:wrap; margin-top:20px; }
+.login-tag{
+  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); border-radius:999px; padding:6px 12px;
+  font-size:11px; font-family:var(--mono); font-weight:600; color:#D0E8E3;
+  opacity:0; animation:tagIn .4s ease forwards;
+  backdrop-filter:blur(4px);
+}
+.login-tags .login-tag:nth-child(1){animation-delay:.6s}
+.login-tags .login-tag:nth-child(2){animation-delay:.7s}
+.login-tags .login-tag:nth-child(3){animation-delay:.8s}
+.login-tags .login-tag:nth-child(4){animation-delay:.9s}
+.login-tags .login-tag:nth-child(5){animation-delay:1s}
+@keyframes tagIn{ from{opacity:0; transform:translateY(5px);} to{opacity:1; transform:none;} }
+
+.login-right{ display:flex; align-items:center; justify-content:center; padding:32px; background:var(--paper); }
 .login-box{
-  width:min(440px,100%); background:var(--card); border-radius:18px; padding:38px;
-  box-shadow: var(--shadow); border:1px solid var(--line-grid);
-  opacity:0; transform: translateY(16px) scale(.98);
-  animation: boxIn .55s cubic-bezier(.2,.7,.2,1) .1s forwards;
+  width:min(400px,100%); background:var(--card); border-radius:16px; padding:36px 32px;
+  box-shadow:0 20px 50px -16px rgba(10,40,36,.2); border:1px solid var(--line-grid);
+  opacity:0; transform: translateY(14px) scale(.98);
+  animation: boxIn .5s cubic-bezier(.2,.7,.2,1) .15s forwards;
 }
 @keyframes boxIn{ to{ opacity:1; transform:none; } }
-.login-box h1{ text-align:center; font-size:30px; margin:10px 0 4px; color:var(--teal-deep); }
-.login-box .desc{ text-align:center; color:var(--ink-soft); margin-bottom:24px; font-size:13.5px; }
-.login-field{ margin:15px 0; }
-.login-field label{ font-size:11.5px; font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em; color:var(--teal); margin-bottom:7px; }
+.login-box h1{ text-align:center; font-size:26px; margin:8px 0 2px; color:var(--teal-deep); font-weight:700; }
+.login-box .desc{ text-align:center; color:var(--ink-soft); margin-bottom:22px; font-size:13px; line-height:1.5; }
+.login-field{ margin:14px 0; }
+.login-field label{ font-size:11px; font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em; color:var(--teal); margin-bottom:6px; }
 .login-submit{
-  width:100%; padding:13px; border:0; border-radius:9px; background:var(--teal); color:#fff;
-  font-weight:700; letter-spacing:.02em; cursor:pointer; margin-top:6px;
+  width:100%; padding:12px; border:0; border-radius:9px; background:var(--teal); color:#fff;
+  font-weight:700; letter-spacing:.02em; cursor:pointer; margin-top:4px;
   transition: transform .12s ease, background .15s ease;
-  box-shadow: 0 10px 22px -10px rgba(14,91,84,.6);
+  box-shadow: 0 8px 20px -8px rgba(14,91,84,.55);
 }
 .login-submit:hover{ background:var(--teal-line); transform:translateY(-1px); }
 .login-submit:active{ transform:translateY(0) scale(.98); }
 .login-error{
-  background:var(--action-soft); color:var(--action); border-radius:10px; padding:11px 13px;
-  font-size:12.5px; margin-bottom:14px; border:1px solid #e3b9b0;
+  background:var(--action-soft); color:var(--action); border-radius:10px; padding:10px 12px;
+  font-size:12px; margin-bottom:12px; border:1px solid #e3b9b0;
   animation: shake .35s ease;
 }
 @keyframes shake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
-.demo{ margin-top:18px; background:var(--paper-2); border-radius:10px; padding:11px 13px; font-size:11px; color:var(--ink-soft); font-family:var(--mono); }
+.demo{ margin-top:16px; background:var(--paper-2); border-radius:9px; padding:10px 12px; font-size:10.5px; color:var(--ink-soft); font-family:var(--mono); line-height:1.6; }
 .demo b{ color:var(--teal-deep); }
 
 /* ===== sidebar / app shell ===== */
@@ -528,10 +510,10 @@
 
 @media(max-width:900px){
   .login-screen{ grid-template-columns:1fr; }
-  .login-left{ min-height:auto; padding:24px 20px; }
-  .login-illustration{ max-width:280px; margin-top:16px; }
-  .partograph-signature{ max-width:100%; margin-top:16px; }
-  .login-right{ padding:20px; }
+  .login-left{ min-height:auto; padding:32px 24px; }
+  .hero-headline{ font-size:36px; }
+  .login-illustration{ max-width:260px; margin-top:20px; }
+  .login-right{ padding:24px 20px; }
   .side-premium{ width:70px; }
   .side-head div,.side-label,.side-link span,.side-user{ display:none; }
   .side-head{ justify-content:center; }
@@ -616,39 +598,14 @@
 <div class="login-left">
 <div class="gov-title">PEMERINTAH KABUPATEN SUMBA BARAT</div>
 <div class="rs-title">RSU HOBA KALLA</div>
-<div class="pte-title">PARTOGRAF <span>TEPAT</span></div>
-<div class="pte-sub">Monitoring kepatuhan dokumentasi lembar pemantauan persalinan — dari garis waspada sampai garis bertindak, setiap tanda di partograf punya arti.</div>
-<div class="login-tags"><span class="login-tag">T · Tertib</span><span class="login-tag">E · Efektif</span><span class="login-tag">P · Profesional</span><span class="login-tag">A · Akurat</span><span class="login-tag">T · Tepat Waktu</span></div>
+<div class="hero-headline">PARTOGRAF <em>TEPAT</em></div>
+<div class="hero-sub">Monitoring kepatuhan dokumentasi lembar pemantauan persalinan — dari garis waspada sampai garis bertindak, setiap tanda di partograf punya arti.</div>
 
 <div class="login-illustration" aria-hidden="true">
-  <!-- Ganti src dengan gambar/gif animasi yang diinginkan -->
   <img src="Nurses_providing_medical_care_20260918092120.gif" alt="Ilustrasi perawat memantau partograf">
 </div>
 
-<div class="partograph-signature" aria-hidden="true">
-<svg viewBox="0 0 520 220" role="img" aria-label="Ilustrasi kurva partograf melewati garis waspada dan garis bertindak">
-  <!-- chart grid -->
-  <g class="pg-grid-line">
-    <line x1="0" y1="30" x2="520" y2="30"></line>
-    <line x1="0" y1="70" x2="520" y2="70"></line>
-    <line x1="0" y1="110" x2="520" y2="110"></line>
-    <line x1="0" y1="150" x2="520" y2="150"></line>
-    <line x1="0" y1="190" x2="520" y2="190"></line>
-  </g>
-  <!-- alert line -->
-  <line class="pg-alert" x1="70" y1="200" x2="330" y2="20"></line>
-  <!-- action line (4h to the right of alert) -->
-  <line class="pg-action" x1="150" y1="200" x2="410" y2="20"></line>
-  <!-- the labour curve, dips below both lines: on-time / compliant -->
-  <path class="pg-curve" d="M20,195 C 80,185 120,160 150,130 C 190,90 230,60 300,45 C 360,32 420,26 500,18"></path>
-  <circle class="pg-dot" cx="20" cy="195" r="4.5" fill="#0E5B54"></circle>
-  <circle class="pg-dot" cx="150" cy="130" r="4.5" fill="#0E5B54"></circle>
-  <circle class="pg-dot" cx="300" cy="45" r="4.5" fill="#0E5B54"></circle>
-  <circle class="pg-dot" cx="500" cy="18" r="4.5" fill="#0E5B54"></circle>
-  <text x="76" y="14" class="pg-legend pg-legend-alert">GARIS WASPADA</text>
-  <text x="330" y="14" class="pg-legend pg-legend-action">GARIS BERTINDAK</text>
-</svg>
-</div>
+<div class="login-tags"><span class="login-tag">T · Tertib</span><span class="login-tag">E · Efektif</span><span class="login-tag">P · Profesional</span><span class="login-tag">A · Akurat</span><span class="login-tag">T · Tepat Waktu</span></div>
 </div>
 <div class="login-right"><div class="login-box">
 <img class="login-logo" src="Lambang_Kabupaten_Sumba_Barat.png" alt="Lambang Kabupaten Sumba Barat"><h1>Masuk</h1><div class="desc">Silakan masuk untuk melanjutkan ke aplikasi PARTOGRAF TEPAT</div>
