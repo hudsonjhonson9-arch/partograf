@@ -7,7 +7,7 @@
         content="width=device-width, initial-scale=1">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
   <style>
 
@@ -37,7 +37,7 @@
       --card:       #FFFDF7;
       --shadow:     0 18px 40px -20px rgba(10,40,36,.35);
       --radius:     14px;
-      --serif: "Inter", "IBM Plex Sans", Arial, sans-serif;
+      --serif: "Fraunces", "Georgia", serif;
       --sans:  "IBM Plex Sans", Arial, sans-serif;
       --mono:  "IBM Plex Mono", "Courier New", monospace;
     }
@@ -378,83 +378,88 @@
 /* ===== PARTOGRAF TEPAT — sign-in ===== */
 .login-screen{
   position:fixed; inset:0; z-index:9999; overflow:auto;
-  display:grid; grid-template-columns:1.1fr .9fr;
-  background: var(--paper);
+  display:grid; grid-template-columns:1.08fr .92fr;
+  background:
+    linear-gradient(var(--paper), var(--paper)),
+    repeating-linear-gradient(0deg, var(--line-grid) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(90deg, var(--line-grid) 0 1px, transparent 1px 26px);
 }
 .login-left{
-  position:relative; padding:48px 6vw 40px; display:flex; flex-direction:column; justify-content:center;
-  overflow:hidden; background: linear-gradient(160deg, var(--teal-deep) 0%, #0a3d39 50%, #072925 100%);
-  color:#EFE9D8;
+  position:relative; padding:44px 6vw; display:flex; flex-direction:column; justify-content:center;
+  overflow:hidden;
 }
-.login-left::before{
-  content:""; position:absolute; inset:0; pointer-events:none;
-  background-image:
-    radial-gradient(circle at 20% 80%, rgba(14,91,84,.4) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(192,138,42,.12) 0%, transparent 40%);
-}
-.login-left::after{
-  content:""; position:absolute; inset:0; pointer-events:none;
-  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 1px, transparent 1px 32px);
-}
+.gov-title{ font-family:var(--mono); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
+.rs-title{ font-family:var(--serif); font-weight:700; font-size:30px; color:var(--teal-deep); margin:6px 0 20px; }
+.pte-title{ font-family:var(--serif); font-size:clamp(40px,6vw,64px); line-height:.98; font-weight:600; color:var(--ink); letter-spacing:-.01em; }
+.pte-title span{ color:var(--action); font-style:italic; }
+.pte-sub{ font-size:16px; max-width:480px; color:var(--ink-soft); line-height:1.55; margin-top:14px; }
 
-.gov-title{ font-family:var(--mono); font-weight:600; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:#7FB5AA; position:relative; z-index:2; }
-.rs-title{ font-family:var(--sans); font-weight:700; font-size:22px; color:#EFE9D8; margin:6px 0 0; position:relative; z-index:2; }
-.hero-headline{
-  font-family:var(--sans); font-size:clamp(32px,5vw,52px); line-height:1.05; font-weight:800;
-  color:#fff; letter-spacing:-.025em; margin:24px 0 0; position:relative; z-index:2;
-}
-.hero-headline em{ font-style:italic; color:var(--alert); }
-.hero-sub{ font-size:14.5px; max-width:400px; color:#B8D4CE; line-height:1.55; margin-top:12px; position:relative; z-index:2; }
-
-.login-illustration{
-  margin-top:28px; max-width:100%; width:100%; position:relative; z-index:2;
-  opacity:0; animation:illustIn .8s cubic-bezier(.2,.7,.3,1) .5s forwards;
-}
-.login-illustration img{
-  width:100%; height:auto; display:block; border-radius:12px;
-  box-shadow:0 16px 40px -12px rgba(0,0,0,.45);
-  border:1.5px solid rgba(255,255,255,.1);
-}
-@keyframes illustIn{ from{opacity:0; transform:translateY(16px) scale(.97);} to{opacity:1; transform:none;} }
-
-.login-tags{ position:relative; z-index:2; display:flex; gap:6px; flex-wrap:wrap; margin-top:20px; }
+.login-tags{ position:relative; z-index:4; display:flex; gap:8px; flex-wrap:wrap; margin-top:26px; }
 .login-tag{
-  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); border-radius:999px; padding:6px 12px;
-  font-size:11px; font-family:var(--mono); font-weight:600; color:#D0E8E3;
+  background:#fff; border:1px solid var(--line-grid); border-radius:999px; padding:7px 13px;
+  font-size:11.5px; font-family:var(--mono); font-weight:600; color:var(--teal-deep);
   opacity:0; animation:tagIn .4s ease forwards;
-  backdrop-filter:blur(4px);
 }
-.login-tags .login-tag:nth-child(1){animation-delay:.6s}
-.login-tags .login-tag:nth-child(2){animation-delay:.7s}
-.login-tags .login-tag:nth-child(3){animation-delay:.8s}
-.login-tags .login-tag:nth-child(4){animation-delay:.9s}
-.login-tags .login-tag:nth-child(5){animation-delay:1s}
-@keyframes tagIn{ from{opacity:0; transform:translateY(5px);} to{opacity:1; transform:none;} }
+.login-tags .login-tag:nth-child(1){animation-delay:.55s}
+.login-tags .login-tag:nth-child(2){animation-delay:.65s}
+.login-tags .login-tag:nth-child(3){animation-delay:.75s}
+.login-tags .login-tag:nth-child(4){animation-delay:.85s}
+.login-tags .login-tag:nth-child(5){animation-delay:.95s}
+@keyframes tagIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
 
-.login-right{ display:flex; align-items:center; justify-content:center; padding:40px; background:var(--paper); }
+/* signature element: an animated partograph line — the cervical
+   dilation curve crossing the alert line then the action line,
+   drawn on load like a pen tracing the chart */
+.partograph-signature{ margin-top:28px; max-width:520px; }
+.partograph-signature svg{ width:100%; height:auto; display:block; }
+.pg-grid-line{ stroke:var(--line-grid); stroke-width:1; }
+.pg-alert{ stroke:var(--alert); stroke-width:1.6; stroke-dasharray:5 4; }
+.pg-action{ stroke:var(--action); stroke-width:1.6; stroke-dasharray:5 4; }
+.pg-curve{
+  fill:none; stroke:var(--teal); stroke-width:3; stroke-linecap:round;
+  stroke-dasharray: 420; stroke-dashoffset: 420;
+  animation: drawCurve 2.1s cubic-bezier(.4,.1,.2,1) .3s forwards;
+}
+.pg-dot{
+  opacity:0; animation: dotIn .3s ease forwards;
+}
+.pg-dot:nth-of-type(1){ animation-delay: .5s; }
+.pg-dot:nth-of-type(2){ animation-delay: 1s; }
+.pg-dot:nth-of-type(3){ animation-delay: 1.5s; }
+.pg-dot:nth-of-type(4){ animation-delay: 2.0s; }
+@keyframes drawCurve{ to{ stroke-dashoffset:0; } }
+@keyframes dotIn{ from{ opacity:0; transform:scale(0);} to{ opacity:1; transform:scale(1);} }
+.pg-legend{ font-family:var(--mono); font-size:10px; }
+.pg-legend-alert{ fill:var(--alert); }
+.pg-legend-action{ fill:var(--action); }
+
+.login-right{ display:flex; align-items:center; justify-content:center; padding:30px; }
 .login-box{
-  width:min(380px,100%);
+  width:min(440px,100%); background:var(--card); border-radius:18px; padding:38px;
+  box-shadow: var(--shadow); border:1px solid var(--line-grid);
+  opacity:0; transform: translateY(16px) scale(.98);
+  animation: boxIn .55s cubic-bezier(.2,.7,.2,1) .1s forwards;
 }
 @keyframes boxIn{ to{ opacity:1; transform:none; } }
-.login-box h1{ text-align:center; font-size:26px; margin:8px 0 2px; color:var(--teal-deep); font-weight:700; }
-.login-box .desc{ text-align:center; color:var(--ink-soft); margin-bottom:22px; font-size:13px; line-height:1.5; }
-.login-field{ margin:14px 0; }
-.login-field label{ font-size:11px; font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em; color:var(--teal); margin-bottom:6px; }
+.login-box h1{ text-align:center; font-size:30px; margin:10px 0 4px; color:var(--teal-deep); }
+.login-box .desc{ text-align:center; color:var(--ink-soft); margin-bottom:24px; font-size:13.5px; }
+.login-field{ margin:15px 0; }
+.login-field label{ font-size:11.5px; font-family:var(--mono); text-transform:uppercase; letter-spacing:.06em; color:var(--teal); margin-bottom:7px; }
 .login-submit{
-  width:100%; padding:12px; border:0; border-radius:9px; background:var(--teal); color:#fff;
-  font-weight:700; letter-spacing:.02em; cursor:pointer; margin-top:4px;
+  width:100%; padding:13px; border:0; border-radius:9px; background:var(--teal); color:#fff;
+  font-weight:700; letter-spacing:.02em; cursor:pointer; margin-top:6px;
   transition: transform .12s ease, background .15s ease;
-  box-shadow: 0 8px 20px -8px rgba(14,91,84,.55);
+  box-shadow: 0 10px 22px -10px rgba(14,91,84,.6);
 }
 .login-submit:hover{ background:var(--teal-line); transform:translateY(-1px); }
 .login-submit:active{ transform:translateY(0) scale(.98); }
 .login-error{
-  background:var(--action-soft); color:var(--action); border-radius:10px; padding:10px 12px;
-  font-size:12px; margin-bottom:12px; border:1px solid #e3b9b0;
+  background:var(--action-soft); color:var(--action); border-radius:10px; padding:11px 13px;
+  font-size:12.5px; margin-bottom:14px; border:1px solid #e3b9b0;
   animation: shake .35s ease;
 }
 @keyframes shake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
-.demo{ margin-top:16px; background:var(--paper-2); border-radius:9px; padding:10px 12px; font-size:10.5px; color:var(--ink-soft); font-family:var(--mono); line-height:1.6; }
+.demo{ margin-top:18px; background:var(--paper-2); border-radius:10px; padding:11px 13px; font-size:11px; color:var(--ink-soft); font-family:var(--mono); }
 .demo b{ color:var(--teal-deep); }
 
 /* ===== sidebar / app shell ===== */
@@ -507,10 +512,8 @@
 
 @media(max-width:900px){
   .login-screen{ grid-template-columns:1fr; }
-  .login-left{ min-height:auto; padding:32px 24px; }
-  .hero-headline{ font-size:36px; }
-  .login-illustration{ max-width:260px; margin-top:20px; }
-  .login-right{ padding:24px 20px; }
+  .login-left{ min-height:360px; padding:28px; }
+  .login-right{ padding:20px; }
   .side-premium{ width:70px; }
   .side-head div,.side-label,.side-link span,.side-user{ display:none; }
   .side-head{ justify-content:center; }
@@ -558,13 +561,14 @@
 
     /* === Logos & SVG icons (no emoji) === */
     .brand{ display:flex; align-items:center; gap:16px; position:relative; z-index:1; }
-    .brand .logo{ height:54px; width:auto; max-width:120px; object-fit:contain; flex:0 0 auto; }
+    .brand .logo{ height:54px; width:auto; max-width:120px; object-fit:contain; flex:0 0 auto;
+      background:#fff; padding:5px 7px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.25); }
     .brand .brand-text{ flex:1; min-width:0; }
     .nav-ic{ width:20px; height:20px; flex:0 0 20px; display:block; }
     .btn .nav-ic{ width:16px; height:16px; display:inline-block; vertical-align:-3px; margin-right:7px; }
     .side-link .nav-ic{ color:#E9F3F0; }
     .login-logo{ height:66px; width:auto; max-width:160px; margin:0 auto 8px; display:block; }
-    @media (max-width:520px){ .brand{ gap:10px; } .brand .logo{ height:42px; } .brand h1{ font-size:21px; } }
+    @media (max-width:520px){ .brand{ gap:10px; } .brand .logo{ height:42px; padding:3px 5px; } .brand h1{ font-size:21px; } }
 </style>
 
 </head>
@@ -594,14 +598,34 @@
 <div class="login-left">
 <div class="gov-title">PEMERINTAH KABUPATEN SUMBA BARAT</div>
 <div class="rs-title">RSU HOBA KALLA</div>
-<div class="hero-headline">PARTOGRAF <em>TEPAT</em></div>
-<div class="hero-sub">Monitoring kepatuhan dokumentasi lembar pemantauan persalinan — dari garis waspada sampai garis bertindak, setiap tanda di partograf punya arti.</div>
-
-<div class="login-illustration" aria-hidden="true">
-  <img src="Nurses_providing_medical_care_20260918092120.gif" alt="Ilustrasi perawat memantau partograf">
-</div>
-
+<div class="pte-title">PARTOGRAF <span>TEPAT</span></div>
+<div class="pte-sub">Monitoring kepatuhan dokumentasi lembar pemantauan persalinan — dari garis waspada sampai garis bertindak, setiap tanda di partograf punya arti.</div>
 <div class="login-tags"><span class="login-tag">T · Tertib</span><span class="login-tag">E · Efektif</span><span class="login-tag">P · Profesional</span><span class="login-tag">A · Akurat</span><span class="login-tag">T · Tepat Waktu</span></div>
+
+<div class="partograph-signature" aria-hidden="true">
+<svg viewBox="0 0 520 220" role="img" aria-label="Ilustrasi kurva partograf melewati garis waspada dan garis bertindak">
+  <!-- chart grid -->
+  <g class="pg-grid-line">
+    <line x1="0" y1="30" x2="520" y2="30"></line>
+    <line x1="0" y1="70" x2="520" y2="70"></line>
+    <line x1="0" y1="110" x2="520" y2="110"></line>
+    <line x1="0" y1="150" x2="520" y2="150"></line>
+    <line x1="0" y1="190" x2="520" y2="190"></line>
+  </g>
+  <!-- alert line -->
+  <line class="pg-alert" x1="70" y1="200" x2="330" y2="20"></line>
+  <!-- action line (4h to the right of alert) -->
+  <line class="pg-action" x1="150" y1="200" x2="410" y2="20"></line>
+  <!-- the labour curve, dips below both lines: on-time / compliant -->
+  <path class="pg-curve" d="M20,195 C 80,185 120,160 150,130 C 190,90 230,60 300,45 C 360,32 420,26 500,18"></path>
+  <circle class="pg-dot" cx="20" cy="195" r="4.5" fill="#0E5B54"></circle>
+  <circle class="pg-dot" cx="150" cy="130" r="4.5" fill="#0E5B54"></circle>
+  <circle class="pg-dot" cx="300" cy="45" r="4.5" fill="#0E5B54"></circle>
+  <circle class="pg-dot" cx="500" cy="18" r="4.5" fill="#0E5B54"></circle>
+  <text x="76" y="14" class="pg-legend pg-legend-alert">GARIS WASPADA</text>
+  <text x="330" y="14" class="pg-legend pg-legend-action">GARIS BERTINDAK</text>
+</svg>
+</div>
 </div>
 <div class="login-right"><div class="login-box">
 <img class="login-logo" src="Lambang_Kabupaten_Sumba_Barat.png" alt="Lambang Kabupaten Sumba Barat"><h1>Masuk</h1><div class="desc">Silakan masuk untuk melanjutkan ke aplikasi PARTOGRAF TEPAT</div>
@@ -658,8 +682,8 @@
       </div>
     <div id="dataContent">Memuat data...</div></section>
     <section id="evaluasi" class="page"><div class="page-title"><div><h2>Evaluasi</h2><p>Perbandingan kondisi sebelum dan sesudah aktualisasi.</p></div><button class="btn secondary" onclick="loadEvaluasi()"><svg class="nav-ic" aria-hidden="true"><use href="#i-refresh"></use></svg> Refresh</button></div><div id="evaluasiContent">Memuat evaluasi...</div></section>
-    <section id="rekapsebelum" class="page"><div class="page-title"><div><h2>Rekap Sebelum</h2><p>Perbandingan data sebelum dan sesudah intervensi.</p></div></div><div id="rekapSebelumContent">Memuat data...</div></section>
-    <section id="rekapsesudah" class="page"><div class="page-title"><div><h2>Rekap Sesudah</h2><p>Perbandingan data sebelum dan sesudah intervensi.</p></div></div><div id="rekapSesudahContent">Memuat data...</div></section>
+    <section id="rekapsebelum" class="page"><div class="page-title"><div><h2>Rekap Sebelum</h2><p>Rekapitulasi monitoring sebelum intervensi.</p></div></div><div id="rekapSebelumContent">Memuat data...</div></section>
+    <section id="rekapsesudah" class="page"><div class="page-title"><div><h2>Rekap Sesudah</h2><p>Rekapitulasi monitoring sesudah intervensi.</p></div></div><div id="rekapSesudahContent">Memuat data...</div></section>
     <section id="perbandingan" class="page"><div class="page-title"><div><h2>Perbandingan</h2><p>Perubahan kepatuhan sebelum dan sesudah.</p></div></div><div id="perbandinganContent">Memuat data...</div></section>
     <section id="checklist" class="page"><div class="page-title"><div><h2>Checklist TEPAT</h2><p>Instrumen penilaian yang digunakan pada monitoring.</p></div></div><div class="hak-card"><table><thead><tr><th>No</th><th>Komponen</th><th>Indikator Monitoring</th><th>Ya</th><th>Tidak</th></tr></thead><tbody><tr><td>1</td><td><b>Tertib</b></td><td>Partograf diisi sesuai tahapan dan tidak ada bagian penting yang terlewat.</td><td>1</td><td>0</td></tr><tr><td>2</td><td><b>Efektif</b></td><td>Pengisian mendukung pemantauan kemajuan persalinan dan pengambilan keputusan.</td><td>1</td><td>0</td></tr><tr><td>3</td><td><b>Profesional</b></td><td>Dokumentasi jelas, konsisten, dan sesuai standar pelayanan.</td><td>1</td><td>0</td></tr><tr><td>4</td><td><b>Akurat</b></td><td>Data hasil pemantauan dicatat sesuai kondisi atau hasil pemeriksaan.</td><td>1</td><td>0</td></tr><tr><td>5</td><td><b>Tepat Waktu</b></td><td>Pengisian dilakukan sesuai waktu pemantauan yang ditetapkan.</td><td>1</td><td>0</td></tr></tbody></table></div></section>
     <section id="panduan" class="page"><div class="page-title"><div><h2>Panduan</h2><p>Petunjuk penggunaan aplikasi.</p></div></div><div class="hak-card"><ol><li>Login menggunakan username dan password.</li><li>Pilih <b>Input Monitoring</b> untuk memasukkan hasil penilaian.</li><li>Isi tanggal, kode Partograf, inisial bidan, dan status monitoring.</li><li>Nilai Tertib, Efektif, Profesional, Akurat, dan Tepat Waktu dengan Ya/Tidak.</li><li>Skor 5 = <b>PATUH</b>; skor kurang dari 5 = <b>BELUM PATUH</b>.</li><li>Gunakan Dashboard, Rekap, dan Perbandingan untuk evaluasi.</li></ol></div></section>
@@ -740,29 +764,20 @@ function loadUsers(){
  const el=document.getElementById('userTable');
  el.innerHTML=Object.keys(USERS).map((k,i)=>'<tr style="--i:'+i+'"><td>'+k+'</td><td>'+USERS[k].name+'</td><td>'+USERS[k].role+'</td></tr>').join('');
 }
-function cacheGet(k){try{return JSON.parse(localStorage.getItem('pt_cache_'+k))}catch(e){return null}}
-function cacheSet(k,v){try{localStorage.setItem('pt_cache_'+k,JSON.stringify(v))}catch(e){}}
 function loadDashboard(){
- const el=document.getElementById('dashboardContent');
- const cached=cacheGet('dashboard');
- if(cached){renderDashboard(el,cached);}
- else{el.innerHTML='<div class="loading">Memuat data...</div>';}
+ const el=document.getElementById('dashboardContent');el.innerHTML='<div class="loading">Memuat data...</div>';
  apiFetch('/api/dashboard').then(function(data){
-  cacheSet('dashboard',data);
-  renderDashboard(el,data);
- }).catch(e=>{if(!cached)showError('dashboardContent',e);});
-}
-function renderDashboard(el,data){
- const b=(Number(data.sebelum.persentase||0)*100).toFixed(1),s=(Number(data.sesudah.persentase||0)*100).toFixed(1),p=(Number(data.peningkatan||0)*100).toFixed(1);
- const cb=statusColor(b), cs=statusColor(s);
- el.innerHTML='<div class="cards"><div class="card"><h3>Partograf Sebelum</h3><div class="number">'+data.sebelum.jumlah+'</div></div><div class="card" style="border-left-color:'+cb+'"><h3>Kepatuhan Sebelum</h3><div class="number" style="color:'+cb+'">'+b+'%</div></div><div class="card"><h3>Partograf Sesudah</h3><div class="number">'+data.sesudah.jumlah+'</div></div><div class="card" style="border-left-color:'+cs+'"><h3>Kepatuhan Sesudah</h3><div class="number" style="color:'+cs+'">'+s+'%</div></div><div class="card"><h3>Peningkatan</h3><div class="number">'+(p>=0?'+':'')+p+'%</div></div></div><div class="chart"><h3>Grafik Kepatuhan <span style="font-size:11px;color:var(--ink-soft);font-family:var(--mono);font-weight:400">— skala warna garis waspada / bertindak partograf</span></h3><div class="bar-container"><div class="bar-label">Sebelum: '+b+'%</div><div class="bar"><div class="bar-value" style="--w:'+Math.min(100,Math.max(0,b))+'%;background:'+cb+'">'+b+'%</div></div></div><div class="bar-container"><div class="bar-label">Sesudah: '+s+'%</div><div class="bar"><div class="bar-value" style="--w:'+Math.min(100,Math.max(0,s))+'%;background:'+cs+'">'+s+'%</div></div></div></div>';
+  const b=(Number(data.sebelum.persentase||0)*100).toFixed(1),s=(Number(data.sesudah.persentase||0)*100).toFixed(1),p=(Number(data.peningkatan||0)*100).toFixed(1);
+  const cb=statusColor(b), cs=statusColor(s);
+  el.innerHTML='<div class="cards"><div class="card"><h3>Partograf Sebelum</h3><div class="number">'+data.sebelum.jumlah+'</div></div><div class="card" style="border-left-color:'+cb+'"><h3>Kepatuhan Sebelum</h3><div class="number" style="color:'+cb+'">'+b+'%</div></div><div class="card"><h3>Partograf Sesudah</h3><div class="number">'+data.sesudah.jumlah+'</div></div><div class="card" style="border-left-color:'+cs+'"><h3>Kepatuhan Sesudah</h3><div class="number" style="color:'+cs+'">'+s+'%</div></div><div class="card"><h3>Peningkatan</h3><div class="number">'+(p>=0?'+':'')+p+'%</div></div></div><div class="chart"><h3>Grafik Kepatuhan <span style="font-size:11px;color:var(--ink-soft);font-family:var(--mono);font-weight:400">— skala warna garis waspada / bertindak partograf</span></h3><div class="bar-container"><div class="bar-label">Sebelum: '+b+'%</div><div class="bar"><div class="bar-value" style="--w:'+Math.min(100,Math.max(0,b))+'%;background:'+cb+'">'+b+'%</div></div></div><div class="bar-container"><div class="bar-label">Sesudah: '+s+'%</div><div class="bar"><div class="bar-value" style="--w:'+Math.min(100,Math.max(0,s))+'%;background:'+cs+'">'+s+'%</div></div></div></div>';
+ }).catch(e=>showError('dashboardContent',e));
 }
 function simpanData(){
  const data={tanggal:val('tanggal'),kode:val('kode'),bidan:val('bidan'),tertib:val('tertib'),efektif:val('efektif'),profesional:val('profesional'),akurat:val('akurat'),tepatWaktu:val('tepatWaktu'),status:val('status'),keterangan:val('keterangan')};
  if(!data.tanggal||!data.kode||!data.bidan||!data.status){toast('Tanggal, kode Partograf, inisial bidan, dan status wajib diisi.');return;}
  const comps=['tertib','efektif','profesional','akurat','tepatWaktu'];if(comps.some(k=>!data[k])){toast('Lima komponen TEPAT wajib dinilai.');return;}
  apiFetch('/api/monitoring',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
-   .then(r=>{toast((r.message||'Data tersimpan.')+' ('+(r.statusKepatuhan||'')+' '+(r.skor!=null?r.skor+'/5':'')+')');document.querySelectorAll('#input input,#input select,#input textarea').forEach(x=>x.value='');updateScore();cacheSet('dashboard',null);showPage('dashboard');refreshBadgeQuiet()})
+  .then(r=>{toast((r.message||'Data tersimpan.')+' ('+(r.statusKepatuhan||'')+' '+(r.skor!=null?r.skor+'/5':'')+')');document.querySelectorAll('#input input,#input select,#input textarea').forEach(x=>x.value='');updateScore();showPage('dashboard');refreshBadgeQuiet()})
   .catch(e=>toast('Gagal menyimpan: '+e.message));
 }
 function val(id){return document.getElementById(id).value}
@@ -786,28 +801,20 @@ function buildQuery(params){
  return s ? ('?'+s) : '';
 }
 function loadData(){
- const el=document.getElementById('dataContent');
- const cacheKey='data_'+buildQuery(currentFilter());
- const cached=cacheGet(cacheKey);
- if(cached){renderData(el,cached);}
- else{el.innerHTML='<div class="loading">Memuat data...</div>';}
+ const el=document.getElementById('dataContent');el.innerHTML='<div class="loading">Memuat data...</div>';
  apiFetch('/api/monitoring'+buildQuery(currentFilter())).then(function(data){
-  cacheSet(cacheKey,data);
-  renderData(el,data);
+  if(!data.length){el.innerHTML='<div class="empty-box">Tidak ada data yang cocok dengan filter saat ini.</div>';return;}
+  let h='<div style="overflow:auto"><table id="dataTablePrint"><thead><tr><th>No</th><th>Tanggal</th><th>Kode</th><th>Bidan</th><th>Tertib</th><th>Efektif</th><th>Profesional</th><th>Akurat</th><th>Tepat Waktu</th><th>Skor</th><th>Status</th><th>Monitoring</th><th>Keterangan</th><th class="no-print">Aksi</th></tr></thead><tbody>';
+  data.forEach((r,i)=>{h+='<tr style="--i:'+i+'"><td>'+esc(r.no)+'</td><td>'+esc(r.tanggal)+'</td><td>'+esc(r.kode)+'</td><td>'+esc(r.bidan)+'</td><td>'+esc(r.tertib)+'</td><td>'+esc(r.efektif)+'</td><td>'+esc(r.profesional)+'</td><td>'+esc(r.akurat)+'</td><td>'+esc(r.tepatWaktu)+'</td><td>'+esc(r.skor)+'</td><td class="'+(r.statusKepatuhan==='PATUH'?'patuh':'belum')+'">'+esc(r.statusKepatuhan)+'</td><td>'+esc(r.statusMonitoring)+'</td><td>'+esc(r.keterangan||'')+'</td><td class="no-print"><button class="btn secondary" style="margin:0;padding:6px 10px;font-size:11.5px" onclick="hapusData('+r.rowNumber+',\''+esc(r.kode)+'\')">🗑 Hapus</button></td></tr>'});
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
   updateBadge(data);
- }).catch(e=>{if(!cached)showError('dataContent',e);});
-}
-function renderData(el,data){
- if(!data.length){el.innerHTML='<div class="empty-box">Tidak ada data yang cocok dengan filter saat ini.</div>';return;}
- let h='<div style="overflow:auto"><table id="dataTablePrint"><thead><tr><th>No</th><th>Tanggal</th><th>Kode</th><th>Bidan</th><th>Tertib</th><th>Efektif</th><th>Profesional</th><th>Akurat</th><th>Tepat Waktu</th><th>Skor</th><th>Status</th><th>Monitoring</th><th>Keterangan</th><th class="no-print">Aksi</th></tr></thead><tbody>';
- data.forEach((r,i)=>{h+='<tr style="--i:'+i+'"><td>'+esc(r.no)+'</td><td>'+esc(r.tanggal)+'</td><td>'+esc(r.kode)+'</td><td>'+esc(r.bidan)+'</td><td>'+esc(r.tertib)+'</td><td>'+esc(r.efektif)+'</td><td>'+esc(r.profesional)+'</td><td>'+esc(r.akurat)+'</td><td>'+esc(r.tepatWaktu)+'</td><td>'+esc(r.skor)+'</td><td class="'+(r.statusKepatuhan==='PATUH'?'patuh':'belum')+'">'+esc(r.statusKepatuhan)+'</td><td>'+esc(r.statusMonitoring)+'</td><td>'+esc(r.keterangan||'')+'</td><td class="no-print"><button class="btn secondary" style="margin:0;padding:6px 10px;font-size:11.5px" onclick="hapusData('+r.rowNumber+',\''+esc(r.kode)+'\')">🗑 Hapus</button></td></tr>'});
- h+='</tbody></table></div>';
- el.innerHTML=h;
+ }).catch(e=>showError('dataContent',e));
 }
 function hapusData(rowNum,kode){
  if(!confirm('Hapus data monitoring dengan kode "'+kode+'"? Tindakan ini tidak dapat dibatalkan.'))return;
  apiFetch('/api/monitoring?row='+rowNum,{method:'DELETE'})
-  .then(r=>{toast(r.message||'Data dihapus.');cacheSet('dashboard',null);loadData()})
+  .then(r=>{toast(r.message||'Data dihapus.');loadData()})
   .catch(e=>toast('Gagal menghapus: '+e.message));
 }
 function printData(){
@@ -825,22 +832,10 @@ function refreshBadgeQuiet(){
 }
 function loadEvaluasi(){loadRekap('evaluasi')}
 function loadRekap(){
- const target=document.querySelector('.page.active');const id=target?target.id:'evaluasi';const el=document.getElementById(id==='evaluasi'?'evaluasiContent':id==='rekapsebelum'?'rekapSebelumContent':id==='rekapsesudah'?'rekapSesudahContent':'perbandinganContent');
- const cached=cacheGet('dashboard');
- if(cached){renderRekap(el,id,cached);}
- else{el.innerHTML='<div class="loading">Memuat data...</div>';}
- apiFetch('/api/dashboard').then(function(d){cacheSet('dashboard',d);renderRekap(el,id,d);}).catch(e=>{if(!cached)showError(el.id,e);});
+ const target=document.querySelector('.page.active');const id=target?target.id:'evaluasi';const el=document.getElementById(id==='evaluasi'?'evaluasiContent':id==='rekapsebelum'?'rekapSebelumContent':id==='rekapsesudah'?'rekapSesudahContent':'perbandinganContent');el.innerHTML='<div class="loading">Memuat data...</div>';
+ apiFetch('/api/dashboard').then(function(d){const b=d.sebelum,s=d.sesudah,p=d.peningkatan; if(id==='rekapsebelum'||id==='rekapsesudah'){const x=id==='rekapsebelum'?b:s;el.innerHTML=rekapCard(id==='rekapsebelum'?'SEBELUM':'SESUDAH',x);return;}const bp=(b.persentase*100).toFixed(1),sp=(s.persentase*100).toFixed(1),pp=(p*100).toFixed(1);el.innerHTML='<div class="hak-card"><table><tr><th>Indikator</th><th>Sebelum</th><th>Sesudah</th><th>Perubahan</th></tr><tr><td>Jumlah Partograf</td><td>'+b.jumlah+'</td><td>'+s.jumlah+'</td><td>'+(s.jumlah-b.jumlah)+'</td></tr><tr><td>Jumlah Patuh</td><td>'+b.patuh+'</td><td>'+s.patuh+'</td><td>'+(s.patuh-b.patuh)+'</td></tr><tr><td>Belum Patuh</td><td>'+b.belumPatuh+'</td><td>'+s.belumPatuh+'</td><td>'+(s.belumPatuh-b.belumPatuh)+'</td></tr><tr><td><b>Kepatuhan</b></td><td><b>'+bp+'%</b></td><td><b>'+sp+'%</b></td><td><b>'+pp+'%</b></td></tr></table></div>'}).catch(e=>showError(el.id,e));
 }
-function renderRekap(el,id,d){const b=d.sebelum,s=d.sesudah,p=d.peningkatan; if(id==='rekapsebelum'||id==='rekapsesudah'){el.innerHTML=rekapCard(b,s);return;}const bp=(b.persentase*100).toFixed(1),sp=(s.persentase*100).toFixed(1),pp=(p*100).toFixed(1);el.innerHTML='<div class="hak-card"><table><tr><th>Indikator</th><th>Sebelum</th><th>Sesudah</th><th>Perubahan</th></tr><tr><td>Jumlah Partograf</td><td>'+b.jumlah+'</td><td>'+s.jumlah+'</td><td>'+(s.jumlah-b.jumlah)+'</td></tr><tr><td>Jumlah Patuh</td><td>'+b.patuh+'</td><td>'+s.patuh+'</td><td>'+(s.patuh-b.patuh)+'</td></tr><tr><td>Belum Patuh</td><td>'+b.belumPatuh+'</td><td>'+s.belumPatuh+'</td><td>'+(s.belumPatuh-b.belumPatuh)+'</td></tr><tr><td><b>Kepatuhan</b></td><td><b>'+bp+'%</b></td><td><b>'+sp+'%</b></td><td><b>'+pp+'%</b></td></tr></table></div>'}
-function rekapCard(b,s){
-  var bp=(b.persentase*100).toFixed(1),sp=(s.persentase*100).toFixed(1),pp=((s.persentase-b.persentase)*100).toFixed(1);
-  function delta(v){return v>0?'<span style="color:var(--patuh)">+'+v+'</span>':v<0?'<span style="color:var(--action)">'+v+'</span>':'<span>0</span>';}
-  return '<div class="hak-card"><table><thead><tr><th>Indikator</th><th>Sebelum</th><th>Sesudah</th><th>Perubahan</th></tr></thead><tbody>'
-    +'<tr><td>Jumlah Partograf</td><td>'+b.jumlah+'</td><td>'+s.jumlah+'</td><td>'+delta(s.jumlah-b.jumlah)+'</td></tr>'
-    +'<tr><td>Jumlah Patuh</td><td>'+b.patuh+'</td><td>'+s.patuh+'</td><td>'+delta(s.patuh-b.patuh)+'</td></tr>'
-    +'<tr><td>Belum Patuh</td><td>'+b.belumPatuh+'</td><td>'+s.belumPatuh+'</td><td>'+delta(s.belumPatuh-b.belumPatuh)+'</td></tr>'
-    +'<tr><td><b>Kepatuhan</b></td><td><b>'+bp+'%</b></td><td><b>'+sp+'%</b></td><td><b>'+delta(Number(pp))+'%</b></td></tr>'
-    +'</tbody></table></div>'}
+function rekapCard(title,x){const c=statusColor((x.persentase*100));return '<div class="hak-grid"><div class="hak-card"><h3>Jumlah Partograf</h3><div class="number">'+x.jumlah+'</div></div><div class="hak-card"><h3>Jumlah Patuh</h3><div class="number" style="color:var(--patuh)">'+x.patuh+'</div></div><div class="hak-card"><h3>Belum Patuh</h3><div class="number" style="color:var(--action)">'+x.belumPatuh+'</div></div><div class="hak-card"><h3>Persentase Kepatuhan</h3><div class="number" style="color:'+c+'">'+(x.persentase*100).toFixed(1)+'%</div></div></div>'}
 function esc(v){return String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 function updateScore(){const ids=['tertib','efektif','profesional','akurat','tepatWaktu'];const score=ids.reduce((n,id)=>n+(val(id)==='Ya'?1:0),0);const sp=document.getElementById('scorePreview'),st=document.getElementById('statusPreview'),box=st.closest('.score-preview');sp.textContent=score+' / 5';st.textContent=score===5?'PATUH':score>0?'BELUM PATUH':'Belum dinilai';const c=score===5?getComputedStyle(document.documentElement).getPropertyValue('--patuh'):score>0?getComputedStyle(document.documentElement).getPropertyValue('--action'):getComputedStyle(document.documentElement).getPropertyValue('--ink-soft');st.style.color=c.trim();box.style.borderColor=c.trim();}
 document.addEventListener('DOMContentLoaded',()=>{['tertib','efektif','profesional','akurat','tepatWaktu'].forEach(id=>document.getElementById(id).addEventListener('change',updateScore));});
