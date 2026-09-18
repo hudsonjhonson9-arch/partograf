@@ -7,7 +7,7 @@
         content="width=device-width, initial-scale=1">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
   <style>
 
@@ -37,7 +37,7 @@
       --card:       #FFFDF7;
       --shadow:     0 18px 40px -20px rgba(10,40,36,.35);
       --radius:     14px;
-      --serif: "Fraunces", "Georgia", serif;
+      --serif: "Inter", "IBM Plex Sans", Arial, sans-serif;
       --sans:  "IBM Plex Sans", Arial, sans-serif;
       --mono:  "IBM Plex Mono", "Courier New", monospace;
     }
@@ -385,16 +385,16 @@
     repeating-linear-gradient(90deg, var(--line-grid) 0 1px, transparent 1px 26px);
 }
 .login-left{
-  position:relative; padding:44px 6vw; display:flex; flex-direction:column; justify-content:center;
+  position:relative; padding:40px 5vw; display:flex; flex-direction:column; justify-content:center;
   overflow:hidden;
 }
 .gov-title{ font-family:var(--mono); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
-.rs-title{ font-family:var(--serif); font-weight:700; font-size:30px; color:var(--teal-deep); margin:6px 0 20px; }
+.rs-title{ font-family:var(--serif); font-weight:700; font-size:28px; color:var(--teal-deep); margin:4px 0 16px; }
 .pte-title{ font-family:var(--serif); font-size:clamp(40px,6vw,64px); line-height:.98; font-weight:600; color:var(--ink); letter-spacing:-.01em; }
 .pte-title span{ color:var(--action); font-style:italic; }
-.pte-sub{ font-size:16px; max-width:480px; color:var(--ink-soft); line-height:1.55; margin-top:14px; }
+.pte-sub{ font-size:15px; max-width:440px; color:var(--ink-soft); line-height:1.5; margin-top:12px; }
 
-.login-tags{ position:relative; z-index:4; display:flex; gap:8px; flex-wrap:wrap; margin-top:26px; }
+.login-tags{ position:relative; z-index:4; display:flex; gap:7px; flex-wrap:wrap; margin-top:20px; }
 .login-tag{
   background:#fff; border:1px solid var(--line-grid); border-radius:999px; padding:7px 13px;
   font-size:11.5px; font-family:var(--mono); font-weight:600; color:var(--teal-deep);
@@ -412,20 +412,21 @@
    drawn on load like a pen tracing the chart */
 /* animated illustration on login */
 .login-illustration{
-  margin-top:28px; max-width:480px; position:relative; z-index:2;
-  opacity:0; animation:illustIn 1s cubic-bezier(.2,.7,.3,1) .4s forwards;
+  margin-top:22px; max-width:360px; position:relative; z-index:2;
+  opacity:0; animation:illustIn .8s cubic-bezier(.2,.7,.3,1) .4s forwards;
 }
 .login-illustration img{
-  width:100%; height:auto; display:block; border-radius:14px;
-  box-shadow:0 12px 32px -10px rgba(10,40,36,.3);
+  width:100%; height:auto; display:block; border-radius:12px;
+  box-shadow:0 8px 24px -8px rgba(10,40,36,.25);
+  border:1.5px solid var(--line-grid);
 }
-@keyframes illustIn{ from{opacity:0; transform:translateY(18px) scale(.96);} to{opacity:1; transform:none;} }
+@keyframes illustIn{ from{opacity:0; transform:translateY(14px) scale(.97);} to{opacity:1; transform:none;} }
 .login-illustration::after{
-  content:""; position:absolute; inset:-6px; border-radius:18px;
-  background:linear-gradient(135deg, rgba(14,91,84,.12), transparent 60%);
+  content:""; position:absolute; inset:-5px; border-radius:15px;
+  background:linear-gradient(135deg, rgba(14,91,84,.08), transparent 50%);
   pointer-events:none; z-index:-1;
 }
-.partograph-signature{ margin-top:28px; max-width:520px; }
+.partograph-signature{ margin-top:20px; max-width:420px; }
 .partograph-signature svg{ width:100%; height:auto; display:block; }
 .pg-grid-line{ stroke:var(--line-grid); stroke-width:1; }
 .pg-alert{ stroke:var(--alert); stroke-width:1.6; stroke-dasharray:5 4; }
@@ -527,7 +528,9 @@
 
 @media(max-width:900px){
   .login-screen{ grid-template-columns:1fr; }
-  .login-left{ min-height:360px; padding:28px; }
+  .login-left{ min-height:auto; padding:24px 20px; }
+  .login-illustration{ max-width:280px; margin-top:16px; }
+  .partograph-signature{ max-width:100%; margin-top:16px; }
   .login-right{ padding:20px; }
   .side-premium{ width:70px; }
   .side-head div,.side-label,.side-link span,.side-user{ display:none; }
