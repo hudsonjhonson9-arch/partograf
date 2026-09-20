@@ -743,13 +743,25 @@ async function loginApp(){
  }catch(err){e.textContent=err.message||'Gagal masuk.';e.style.display='block';}
  finally{btn.disabled=false;btn.textContent='Masuk ke Aplikasi';}
 }
-function enterApp(){
+function enterApp(bootstrapData){
  document.getElementById('loginScreen').style.display='none';document.getElementById('sidePremium').style.display='block';document.getElementById('premiumMain').style.display='block';
  document.getElementById('sideName').textContent=currentUser.name;document.getElementById('sideRole').textContent=currentUser.role;
  const bidan=document.getElementById('bidan'); if(bidan && currentUser.inisial){ bidan.value=currentUser.inisial; bidan.readOnly=true; } else if(bidan){ bidan.readOnly=false; }
  document.querySelectorAll('.side-link[data-role]').forEach(x=>{x.style.display=x.dataset.role.split(',').includes(currentUser.role)?'flex':'none'});
- showPage('dashboard');
- refreshBadgeQuiet();
+ if(bootstrapData && bootstrapData.dashboard){
+  // Sudah dapat data dashboard + badge dari /api/bootstrap (satu panggilan),
+  // jadi tampilkan langsung tanpa fetch /api/dashboard atau /api/monitoring lagi.
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  const target=document.getElementById('dashboard'); if(target)target.classList.add('active');
+  document.querySelectorAll('.side-link[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page==='dashboard'));
+  cacheSet('dashboard',bootstrapData.dashboard);
+  renderDashboard(document.getElementById('dashboardContent'),bootstrapData.dashboard);
+  const badge=document.getElementById('badgeBelumPatuh');
+  if(badge){ const n=bootstrapData.belumPatuh||0; if(n>0){badge.style.display='inline-flex';badge.textContent=n>99?'99+':n;} else{badge.style.display='none';} }
+ }else{
+  showPage('dashboard');
+  refreshBadgeQuiet();
+ }
 }
 function logoutApp(){clearSession();currentUser=null;location.reload()}
 function showPage(name){
@@ -957,7 +969,9 @@ document.addEventListener('DOMContentLoaded',()=>{['tertib','efektif','profesion
 window.addEventListener('load',()=>{
  try{const msg=sessionStorage.getItem('pt_login_msg');if(msg){sessionStorage.removeItem('pt_login_msg');const e=document.getElementById('loginError');e.textContent=msg;e.style.display='block';}}catch(err){}
  if(!getSession())return;
- apiFetch('/api/me').then(r=>{currentUser=toCurrentUser(r.user);enterApp();}).catch(()=>{});
+ // Satu panggilan gabungan (user + dashboard + badge) alih-alih 3 panggilan
+ // terpisah (me, dashboard, monitoring) supaya refresh tidak lambat.
+ apiFetch('/api/bootstrap').then(r=>{currentUser=toCurrentUser(r.user);enterApp(r);}).catch(()=>{});
 });
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&['loginUser','loginPass'].includes(document.activeElement.id))loginApp();});
 </script>

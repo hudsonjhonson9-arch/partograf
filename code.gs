@@ -70,6 +70,15 @@ function routeAuthed_(action, p) {
     case 'dashboard':
       return getDashboardData();
 
+    case 'bootstrap': {
+      // Gabungan me + dashboard + badge dalam SATU panggilan, supaya
+      // pembukaan aplikasi (login ulang / refresh) tidak perlu 3 kali
+      // bolak-balik ke Apps Script (masing-masing lewat 2 hop redirect).
+      const dash = getDashboardData();
+      const belumPatuh = (dash.sebelum.belumPatuh || 0) + (dash.sesudah.belumPatuh || 0);
+      return { user: publicUser_(user), dashboard: dash, belumPatuh: belumPatuh };
+    }
+
     case 'monitoring': {
       const f = p.filter || {};
       return getMonitoringData({
@@ -502,9 +511,33 @@ function createPanduanSheet(ss) {
     DATA UNTUK DASHBOARD WEB  (dihitung di kode, bukan di sheet)
  ========================= */
 
+const DASHBOARD_CACHE_KEY = 'PTEPAT_DASHBOARD_CACHE_V1';
+const DASHBOARD_CACHE_SECONDS = 45;
+
+function invalidateDashboardCache_() {
+  try {
+    CacheService.getScriptCache().remove(DASHBOARD_CACHE_KEY);
+  } catch (e) {
+    Logger.log('Gagal menghapus cache dashboard: ' + e.message);
+  }
+}
+
 function getDashboardData() {
 
   ensureSpreadsheetReady_();
+
+  // Cache singkat (detik) supaya beberapa panggilan yang datang hampir
+  // bersamaan (mis. dashboard + badge, atau beberapa pengguna sekaligus)
+  // tidak membaca & menghitung ulang seluruh sheet dari nol tiap kali.
+  const cache = CacheService.getScriptCache();
+  const cached = cache.get(DASHBOARD_CACHE_KEY);
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch (e) {
+      // lanjut hitung ulang bila cache korup
+    }
+  }
 
   // Agregat dihitung dari data mentah di sheet DATA MONITORING.
   const items = getMonitoringData().map(toMonitoringObject_);
@@ -539,7 +572,7 @@ function getDashboardData() {
     peningkatanPerItem[k] = sdPerItem[k].persentase - sbPerItem[k].persentase;
   });
 
-  return {
+  const hasil = {
     sebelum: {
       jumlah: sb.jumlah,
       patuh: sb.patuh,
@@ -557,6 +590,14 @@ function getDashboardData() {
     peningkatan: sdPct - sbPct,
     peningkatanPerItem: peningkatanPerItem
   };
+
+  try {
+    cache.put(DASHBOARD_CACHE_KEY, JSON.stringify(hasil), DASHBOARD_CACHE_SECONDS);
+  } catch (e) {
+    Logger.log('Gagal menyimpan cache dashboard: ' + e.message);
+  }
+
+  return hasil;
 }
 
 /**
@@ -854,6 +895,7 @@ function saveMonitoring(data) {
   sheet.getRange(row, 1).setValue(row);
 
   SpreadsheetApp.flush();
+  invalidateDashboardCache_();
 
   writeAuditLog('SIMPAN_MONITORING',
     'Kode=' + kode + '; Status=' + status + '; Skor=' + skor + '/5; Bidan=' + data.bidan
@@ -894,6 +936,7 @@ function deleteMonitoring(rowNumber) {
   }
 
   sheet.deleteRow(row);
+  invalidateDashboardCache_();
 
   writeAuditLog('HAPUS_MONITORING',
     'Baris=' + row + '; Kode=' + rowData[2] + '; Status=' + rowData[9]
