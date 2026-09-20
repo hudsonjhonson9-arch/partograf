@@ -4,7 +4,8 @@ const SHEETS = {
   DATA: 'DATA MONITORING',
   CHECKLIST: 'CHECKLIST TEPAT',
   PANDUAN: 'PANDUAN',
-  AUDIT: 'AUDIT_LOG'
+  AUDIT: 'AUDIT_LOG',
+  USERS: 'USERS'
 };
 
 const KOMPONEN_TEPAT = ['tertib', 'efektif', 'profesional', 'akurat', 'tepatWaktu'];
@@ -17,41 +18,14 @@ const YA_TIDAK_VALID = ['Ya', 'Tidak'];
 ========================= */
 
 /**
- * Endpoint utama sebagai BACKEND JSON untuk aplikasi web (Vercel).
- * Dipanggil lewat proxy /api/* di Vercel, maupun bisa langsung.
- *   ?action=dashboard        -> ringkasan kepatuhan
- *   ?action=monitoring&...   -> daftar data (dengan filter opsional)
- *   ?action=setup            -> bangun ulang SELURUH struktur sheet
- *                                (dashboard, data, checklist, rekap,
- *                                 perbandingan, panduan, audit)
- * Tanpa parameter action -> respons kecil bahwa API hidup.
+ * Endpoint GET hanya untuk cek bahwa API hidup. Semua aksi data memakai
+ * doPost() dengan token sesi (lihat routeAuthed_).
  */
 function doGet(e) {
-  const action = (e && e.parameter && e.parameter.action) || '';
-
-  if (action === 'setup') {
-    return jsonOut_(safeRun_(setupSpreadsheet));
-  }
-
-  if (action === 'dashboard') {
-    return jsonOut_(safeRun_(getDashboardData));
-  }
-
-  if (action === 'monitoring') {
-    const f = e.parameter || {};
-    const rowsOrErr = safeRun_(() => getMonitoringData({
-      tanggalDari: f.tanggalDari,
-      tanggalSampai: f.tanggalSampai,
-      status: f.status,
-      bidan: f.bidan,
-      kode: f.kode
-    }));
-    if (rowsOrErr && rowsOrErr.error) {
-      return jsonOut_(rowsOrErr);
-    }
-    return jsonOut_(rowsOrErr.map(toMonitoringObject_));
-  }
-
+  // SENGAJA tidak melayani data apa pun lewat GET. Semua aksi (login, data,
+  // pengguna) lewat doPost dan wajib memakai token sesi. Aksi 'setup' tidak
+  // lagi bisa dipanggil lewat web: jalankan setupSpreadsheet() manual dari
+  // editor Apps Script bila memang perlu membangun ulang struktur sheet.
   return jsonOut_({ ok: true, message: 'PARTOGRAF TEPAT API (Google Apps Script)' });
 }
 
@@ -72,14 +46,77 @@ function doPost(e) {
 
   const action = payload.action;
 
-  if (action === 'save') {
-    return jsonOut_(safeRun_(() => saveMonitoring(payload.data || {})));
-  }
-  if (action === 'delete') {
-    return jsonOut_(safeRun_(() => deleteMonitoring(payload.row)));
+  if (action === 'login') {
+    return jsonOut_(safeRun_(() => handleLogin_(payload)));
   }
 
-  return jsonOut_({ error: 'Aksi tidak dikenali.' });
+  return jsonOut_(safeRun_(() => routeAuthed_(action, payload)));
+}
+
+
+/**
+ * Semua aksi selain login: wajib token sesi valid, lalu dicek peran (role)
+ * di SISI SERVER. Pembatasan menu di frontend hanya tampilan.
+ */
+function routeAuthed_(action, p) {
+
+  const user = authenticate_(p.token);
+
+  switch (action) {
+
+    case 'me':
+      return { user: publicUser_(user) };
+
+    case 'dashboard':
+      return getDashboardData();
+
+    case 'monitoring': {
+      const f = p.filter || {};
+      return getMonitoringData({
+        tanggalDari: f.tanggalDari,
+        tanggalSampai: f.tanggalSampai,
+        status: f.status,
+        bidan: f.bidan,
+        kode: f.kode
+      }).map(toMonitoringObject_);
+    }
+
+    case 'save': {
+      requireRole_(user, ['ADMIN', 'PETUGAS']);
+      const data = Object.assign({}, p.data || {});
+      // Petugas bidan selalu tercatat dengan inisialnya sendiri.
+      if (user.peran === 'PETUGAS' && user.inisial) {
+        data.bidan = user.inisial;
+      }
+      return saveMonitoring(data);
+    }
+
+    case 'delete':
+      requireRole_(user, ['ADMIN']);
+      return deleteMonitoring(p.row);
+
+    case 'changePassword':
+      return changePassword_(user, p);
+
+    case 'listUsers':
+      requireRole_(user, ['ADMIN']);
+      return { users: readUsers_().map(publicUser_) };
+
+    case 'createUser':
+      requireRole_(user, ['ADMIN']);
+      return createUser_(user, p);
+
+    case 'updateUser':
+      requireRole_(user, ['ADMIN']);
+      return updateUser_(user, p);
+
+    case 'deleteUser':
+      requireRole_(user, ['ADMIN']);
+      return deleteUser_(user, p);
+
+    default:
+      throw httpError_(400, 'Aksi tidak dikenali.');
+  }
 }
 
 
@@ -88,7 +125,11 @@ function safeRun_(fn) {
   try {
     return fn();
   } catch (err) {
-    return { error: err.message || String(err) };
+    const out = { error: err.message || String(err) };
+    if (err.code) {
+      out.code = err.code;
+    }
+    return out;
   }
 }
 
@@ -170,7 +211,7 @@ function getSpreadsheet() {
       mengecek satu-satu setiap kali.
 ========================= */
 
-const INIT_FLAG_KEY = 'PTEPAT_STRUKTUR_SIAP_V2';
+const INIT_FLAG_KEY = 'PTEPAT_STRUKTUR_SIAP_V3';
 
 /**
  * Dipanggil dari doGet(). Cepat: jika penanda sudah tersimpan dan semua
@@ -227,8 +268,9 @@ function setupSpreadsheet() {
   // Hapus SELURUH lembar lama (termasuk sisa DASHBOARD / REKAP / PERBANDINGAN
   // dari versi sebelumnya) supaya struktur dibangun ulang bersih. Spreadsheet
   // kini hanya menyimpan DATA MENTAH; semua perhitungan dilakukan di kode.
+  // Sheet USERS sengaja TIDAK dihapus supaya akun pengguna tidak hilang.
   ss.getSheets().forEach(sh => {
-    if (sh.getName() !== temp.getName()) {
+    if (sh.getName() !== temp.getName() && sh.getName() !== SHEETS.USERS) {
       ss.deleteSheet(sh);
     }
   });
@@ -269,6 +311,8 @@ function buildAllSheets_(ss) {
   createPanduanSheet(ss);
   SpreadsheetApp.flush();
   getOrCreateAuditSheet(ss);
+  SpreadsheetApp.flush();
+  getOrCreateUsersSheet_(ss);
   SpreadsheetApp.flush();
 }
 
@@ -891,12 +935,8 @@ function writeAuditLog(action, detail) {
     const ss = getSpreadsheet();
     const sheet = getOrCreateAuditSheet(ss);
 
-    let user = 'guest';
-    try {
-      user = Session.getActiveUser().getEmail() || 'guest';
-    } catch (e) {
-      user = 'guest';
-    }
+    // Pengguna aplikasi (dari token sesi / login), bukan akun Google.
+    const user = CURRENT_USERNAME_ || 'guest';
 
     sheet.appendRow([new Date(), user, action, detail || '']);
   } catch (e) {
@@ -914,4 +954,585 @@ function getCurrentUser() {
     email = 'guest';
   }
   return { email: email };
+}
+
+
+/* =====================================================================
+   AUTENTIKASI & MANAJEMEN PENGGUNA
+
+   - Akun disimpan di sheet USERS (password TIDAK disimpan polos: hanya
+     hash SHA-256 + salt acak per pengguna, diulang HASH_ROUNDS kali).
+   - Login menghasilkan token bertanda-tangan (HMAC) yang berlaku
+     SESSION_HOURS jam. Kunci penandatangan disimpan otomatis di Script
+     Properties (SESSION_SECRET). Token otomatis tidak berlaku bila akun
+     dinonaktifkan/dihapus atau password diganti.
+   - Peran dicek di server pada setiap aksi (lihat routeAuthed_).
+   - JANGAN bagikan spreadsheet ini ke orang yang tidak berhak: sheet
+     USERS berisi hash password.
+===================================================================== */
+
+let CURRENT_USERNAME_ = '';
+
+const ROLES_VALID = ['ADMIN', 'PETUGAS', 'PIMPINAN'];
+const SESSION_HOURS = 12;
+const HASH_ROUNDS = 500;
+const MAX_LOGIN_FAIL = 5;
+const LOCK_SECONDS = 600;
+const TZ_APP = 'Asia/Makassar';
+const USER_HEADERS = [
+  'Username', 'Nama', 'Peran', 'Inisial', 'Aktif',
+  'Salt', 'Password Hash', 'Dibuat', 'Login Terakhir'
+];
+
+
+function httpError_(code, message) {
+  const err = new Error(message);
+  err.code = code;
+  return err;
+}
+
+function nowStr_() {
+  return Utilities.formatDate(new Date(), TZ_APP, 'yyyy-MM-dd HH:mm:ss');
+}
+
+function withLock_(fn) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    return fn();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+
+/* ---------- sheet USERS ---------- */
+
+function getOrCreateUsersSheet_(ss) {
+
+  let sheet = ss.getSheetByName(SHEETS.USERS);
+
+  if (sheet) {
+    return sheet;
+  }
+
+  sheet = ss.insertSheet(SHEETS.USERS);
+
+  sheet.getRange(1, 1, 1, USER_HEADERS.length)
+    .setValues([USER_HEADERS])
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center');
+
+  // Format teks supaya hash heksadesimal tidak terbaca sebagai angka.
+  sheet.getRange('A:I').setNumberFormat('@');
+  sheet.setFrozenRows(1);
+  sheet.setTabColor('#B23A2E');
+
+  return sheet;
+}
+
+function readUsers_() {
+
+  const sheet = getOrCreateUsersSheet_(getSpreadsheet());
+  const last = sheet.getLastRow();
+
+  if (last < 2) {
+    return [];
+  }
+
+  const values = sheet.getRange(2, 1, last - 1, USER_HEADERS.length).getValues();
+  const users = [];
+
+  values.forEach((r, i) => {
+    const username = String(r[0]).trim().toLowerCase();
+    if (!username) {
+      return;
+    }
+    users.push({
+      row: i + 2,
+      username: username,
+      nama: String(r[1]),
+      peran: String(r[2]).trim().toUpperCase(),
+      inisial: String(r[3]),
+      aktif: String(r[4]).trim() === 'Ya',
+      salt: String(r[5]),
+      hash: String(r[6]),
+      dibuat: String(r[7]),
+      loginTerakhir: String(r[8])
+    });
+  });
+
+  return users;
+}
+
+function publicUser_(u) {
+  return {
+    username: u.username,
+    nama: u.nama,
+    peran: u.peran,
+    inisial: u.inisial,
+    aktif: u.aktif,
+    dibuat: u.dibuat,
+    loginTerakhir: u.loginTerakhir
+  };
+}
+
+
+/* ---------- hash & token ---------- */
+
+function bytesToHex_(bytes) {
+  return bytes.map(b => (b < 0 ? b + 256 : b).toString(16).padStart(2, '0')).join('');
+}
+
+function hashPassword_(password, salt) {
+  let h = salt + '|' + password;
+  for (let i = 0; i < HASH_ROUNDS; i++) {
+    h = bytesToHex_(Utilities.computeDigest(
+      Utilities.DigestAlgorithm.SHA_256,
+      h + '|' + salt,
+      Utilities.Charset.UTF_8
+    ));
+  }
+  return h;
+}
+
+function safeEqual_(a, b) {
+  a = String(a);
+  b = String(b);
+  if (a.length !== b.length) {
+    return false;
+  }
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+function getSecret_() {
+  const props = PropertiesService.getScriptProperties();
+  let secret = props.getProperty('SESSION_SECRET');
+  if (!secret) {
+    secret = Utilities.getUuid() + Utilities.getUuid() + Utilities.getUuid();
+    props.setProperty('SESSION_SECRET', secret);
+  }
+  return secret;
+}
+
+function signPart_(body) {
+  return Utilities.base64EncodeWebSafe(
+    Utilities.computeHmacSha256Signature(body, getSecret_())
+  );
+}
+
+function issueToken_(username, hash) {
+  const exp = Date.now() + SESSION_HOURS * 3600 * 1000;
+  const body = Utilities.base64EncodeWebSafe(JSON.stringify({
+    u: username,
+    pv: String(hash).slice(0, 10),
+    exp: exp
+  }));
+  return { token: body + '.' + signPart_(body), expiresAt: exp };
+}
+
+function verifyToken_(token) {
+
+  if (!token || typeof token !== 'string') {
+    return null;
+  }
+
+  const parts = token.split('.');
+  if (parts.length !== 2 || !safeEqual_(signPart_(parts[0]), parts[1])) {
+    return null;
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(
+      Utilities.newBlob(Utilities.base64DecodeWebSafe(parts[0])).getDataAsString()
+    );
+  } catch (err) {
+    return null;
+  }
+
+  if (!payload || !payload.exp || Date.now() > payload.exp) {
+    return null;
+  }
+
+  return payload;
+}
+
+function authenticate_(token) {
+
+  const msg = 'Sesi tidak valid atau sudah berakhir. Silakan masuk kembali.';
+  const payload = verifyToken_(token);
+
+  if (!payload) {
+    throw httpError_(401, msg);
+  }
+
+  const user = readUsers_().find(u => u.username === payload.u);
+
+  if (!user || !user.aktif || user.hash.slice(0, 10) !== payload.pv) {
+    throw httpError_(401, msg);
+  }
+
+  CURRENT_USERNAME_ = user.username;
+  return user;
+}
+
+function requireRole_(user, roles) {
+  if (roles.indexOf(user.peran) === -1) {
+    throw httpError_(403, 'Anda tidak memiliki hak akses untuk aksi ini.');
+  }
+}
+
+
+/* ---------- pembatasan percobaan login ---------- */
+
+function failKey_(username) {
+  return 'loginfail_' + String(username).slice(0, 60);
+}
+
+function getFails_(username) {
+  return Number(CacheService.getScriptCache().get(failKey_(username)) || 0);
+}
+
+function addFail_(username) {
+  CacheService.getScriptCache().put(
+    failKey_(username), String(getFails_(username) + 1), LOCK_SECONDS
+  );
+}
+
+function clearFails_(username) {
+  CacheService.getScriptCache().remove(failKey_(username));
+}
+
+function assertNotLocked_(username) {
+  if (getFails_(username) >= MAX_LOGIN_FAIL) {
+    throw httpError_(429, 'Terlalu banyak percobaan gagal. Coba lagi dalam 10 menit.');
+  }
+}
+
+
+/* ---------- login ---------- */
+
+function handleLogin_(p) {
+
+  const username = String(p.username || '').trim().toLowerCase();
+  const password = String(p.password || '');
+
+  if (!username || !password) {
+    throw httpError_(400, 'Username dan password wajib diisi.');
+  }
+
+  assertNotLocked_(username);
+  seedAdminIfEmpty_();
+
+  const user = readUsers_().find(u => u.username === username);
+
+  // Hash tetap dihitung walau user tidak ada, agar waktu respons seragam.
+  const candidate = hashPassword_(password, user ? user.salt : 'x');
+  const ok = !!user && user.aktif && safeEqual_(candidate, user.hash);
+
+  if (!ok) {
+    addFail_(username);
+    CURRENT_USERNAME_ = username.slice(0, 30);
+    writeAuditLog('LOGIN_GAGAL', 'Username=' + username.slice(0, 30));
+    throw httpError_(401, 'Username atau password salah.');
+  }
+
+  clearFails_(username);
+  CURRENT_USERNAME_ = user.username;
+
+  getOrCreateUsersSheet_(getSpreadsheet())
+    .getRange(user.row, 9)
+    .setValue(nowStr_());
+
+  writeAuditLog('LOGIN', 'Peran=' + user.peran);
+
+  const session = issueToken_(user.username, user.hash);
+
+  return {
+    token: session.token,
+    expiresAt: session.expiresAt,
+    user: publicUser_(user)
+  };
+}
+
+
+/* ---------- admin awal ---------- */
+
+/**
+ * Jika sheet USERS masih kosong, buat 3 akun bawaan: admin/admin123,
+ * bidan/bidan123, pimpinan/pimpinan123. Dipanggil otomatis saat login
+ * pertama, atau jalankan buatAdminAwal() manual dari editor. Setelah itu
+ * password tiap akun bisa diganti pemiliknya lewat menu "Ganti Password",
+ * atau direset ADMIN lewat menu Pengguna.
+ */
+function seedAdminIfEmpty_() {
+
+  // Jalur cepat tanpa lock: hampir semua login lewat sini.
+  if (readUsers_().length > 0) {
+    return false;
+  }
+
+  return withLock_(() => {
+
+    if (readUsers_().length > 0) {
+      return false;
+    }
+
+    // Akun bawaan (sama seperti versi sebelumnya). Password disimpan sebagai
+    // hash di sheet USERS, dan semua bisa diganti lewat menu "Ganti Password".
+    const defaults = [
+      { username: 'admin', nama: 'Administrator', peran: 'ADMIN', inisial: '', password: 'admin123' },
+      { username: 'bidan', nama: 'Petugas Bidan', peran: 'PETUGAS', inisial: 'BD', password: 'bidan123' },
+      { username: 'pimpinan', nama: 'Pimpinan RS', peran: 'PIMPINAN', inisial: '', password: 'pimpinan123' }
+    ];
+
+    // Opsional: password admin awal bisa diganti lewat Script Property
+    // ADMIN_PASSWORD_AWAL (dihapus otomatis setelah dipakai).
+    const props = PropertiesService.getScriptProperties();
+    const adminPwd = props.getProperty('ADMIN_PASSWORD_AWAL');
+    if (adminPwd && adminPwd.length >= 8) {
+      defaults[0].password = adminPwd;
+      props.deleteProperty('ADMIN_PASSWORD_AWAL');
+    }
+
+    defaults.forEach(d => {
+      d.aktif = true;
+      createUserRow_(d);
+    });
+
+    CURRENT_USERNAME_ = 'system';
+    writeAuditLog('SEED_USERS_BAWAAN', 'Dibuat: admin, bidan, pimpinan');
+
+    return true;
+  });
+}
+
+function buatAdminAwal() {
+  return seedAdminIfEmpty_()
+    ? 'Akun bawaan (admin, bidan, pimpinan) berhasil dibuat di sheet USERS.'
+    : 'Tidak dibuat: sheet USERS sudah berisi pengguna.';
+}
+
+
+/* ---------- CRUD pengguna ---------- */
+
+function normalizeUserInput_(p) {
+  return {
+    username: String(p.username || '').trim().toLowerCase(),
+    nama: String(p.nama || '').trim(),
+    peran: String(p.peran || '').trim().toUpperCase(),
+    inisial: String(p.inisial || '').trim().toUpperCase(),
+    aktif: !(p.aktif === false || p.aktif === 'Tidak'),
+    password: p.password ? String(p.password) : ''
+  };
+}
+
+function validateUserInput_(d, isNew) {
+
+  const errors = [];
+
+  if (!/^[a-z0-9._-]{3,30}$/.test(d.username)) {
+    errors.push('Username 3-30 karakter, hanya huruf kecil, angka, titik, garis bawah, atau strip.');
+  }
+  if (!d.nama || d.nama.length > 60) {
+    errors.push('Nama wajib diisi (maksimal 60 karakter).');
+  }
+  if (ROLES_VALID.indexOf(d.peran) === -1) {
+    errors.push('Peran harus ADMIN, PETUGAS, atau PIMPINAN.');
+  }
+  if (d.inisial.length > 15) {
+    errors.push('Inisial maksimal 15 karakter.');
+  }
+  if (d.peran === 'PETUGAS' && !d.inisial) {
+    errors.push('Inisial bidan wajib diisi untuk peran PETUGAS.');
+  }
+  if (isNew && !d.password) {
+    errors.push('Password wajib diisi.');
+  }
+  if (d.password && (d.password.length < 8 || d.password.length > 72)) {
+    errors.push('Password 8-72 karakter.');
+  }
+
+  return errors;
+}
+
+function createUserRow_(d) {
+
+  const salt = Utilities.getUuid();
+
+  getOrCreateUsersSheet_(getSpreadsheet()).appendRow([
+    d.username,
+    d.nama,
+    d.peran,
+    d.inisial || '',
+    d.aktif ? 'Ya' : 'Tidak',
+    salt,
+    hashPassword_(d.password, salt),
+    nowStr_(),
+    ''
+  ]);
+}
+
+function countOtherActiveAdmins_(users, username) {
+  return users.filter(u =>
+    u.username !== username && u.peran === 'ADMIN' && u.aktif
+  ).length;
+}
+
+function createUser_(actor, p) {
+
+  const d = normalizeUserInput_(p);
+  const errors = validateUserInput_(d, true);
+
+  if (errors.length > 0) {
+    throw httpError_(400, errors.join(' '));
+  }
+
+  return withLock_(() => {
+
+    if (readUsers_().some(u => u.username === d.username)) {
+      throw httpError_(400, 'Username "' + d.username + '" sudah dipakai.');
+    }
+
+    createUserRow_(d);
+    writeAuditLog('TAMBAH_USER', 'Username=' + d.username + '; Peran=' + d.peran);
+
+    return { success: true, message: 'Pengguna berhasil ditambahkan.' };
+  });
+}
+
+function updateUser_(actor, p) {
+
+  return withLock_(() => {
+
+    const users = readUsers_();
+    const username = String(p.username || '').trim().toLowerCase();
+    const target = users.find(u => u.username === username);
+
+    if (!target) {
+      throw httpError_(404, 'Pengguna tidak ditemukan.');
+    }
+
+    const d = normalizeUserInput_(p);
+    if (p.aktif === undefined) {
+      d.aktif = target.aktif;
+    }
+
+    const errors = validateUserInput_(d, false);
+    if (errors.length > 0) {
+      throw httpError_(400, errors.join(' '));
+    }
+
+    if (target.username === actor.username) {
+      if (d.peran !== 'ADMIN') {
+        throw httpError_(400, 'Anda tidak dapat mengubah peran akun Anda sendiri.');
+      }
+      if (!d.aktif) {
+        throw httpError_(400, 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
+      }
+    }
+
+    if (target.peran === 'ADMIN' && target.aktif &&
+        (d.peran !== 'ADMIN' || !d.aktif) &&
+        countOtherActiveAdmins_(users, target.username) === 0) {
+      throw httpError_(400, 'Harus ada minimal satu ADMIN yang aktif.');
+    }
+
+    const sheet = getOrCreateUsersSheet_(getSpreadsheet());
+
+    sheet.getRange(target.row, 2, 1, 4).setValues([[
+      d.nama, d.peran, d.inisial, d.aktif ? 'Ya' : 'Tidak'
+    ]]);
+
+    let passwordChanged = false;
+    if (d.password) {
+      const salt = Utilities.getUuid();
+      sheet.getRange(target.row, 6, 1, 2).setValues([[
+        salt, hashPassword_(d.password, salt)
+      ]]);
+      passwordChanged = true;
+    }
+
+    writeAuditLog('UBAH_USER',
+      'Username=' + target.username + '; Peran=' + d.peran +
+      '; Aktif=' + (d.aktif ? 'Ya' : 'Tidak') +
+      (passwordChanged ? '; PasswordDireset' : '')
+    );
+
+    return { success: true, message: 'Pengguna berhasil diperbarui.' };
+  });
+}
+
+function deleteUser_(actor, p) {
+
+  return withLock_(() => {
+
+    const users = readUsers_();
+    const username = String(p.username || '').trim().toLowerCase();
+    const target = users.find(u => u.username === username);
+
+    if (!target) {
+      throw httpError_(404, 'Pengguna tidak ditemukan.');
+    }
+    if (target.username === actor.username) {
+      throw httpError_(400, 'Anda tidak dapat menghapus akun Anda sendiri.');
+    }
+    if (target.peran === 'ADMIN' && target.aktif &&
+        countOtherActiveAdmins_(users, target.username) === 0) {
+      throw httpError_(400, 'Harus ada minimal satu ADMIN yang aktif.');
+    }
+
+    getOrCreateUsersSheet_(getSpreadsheet()).deleteRow(target.row);
+    writeAuditLog('HAPUS_USER', 'Username=' + target.username);
+
+    return { success: true, message: 'Pengguna berhasil dihapus.' };
+  });
+}
+
+function changePassword_(user, p) {
+
+  const oldPassword = String(p.oldPassword || '');
+  const newPassword = String(p.newPassword || '');
+
+  assertNotLocked_(user.username);
+
+  if (!oldPassword || !newPassword) {
+    throw httpError_(400, 'Password lama dan baru wajib diisi.');
+  }
+  if (newPassword.length < 8 || newPassword.length > 72) {
+    throw httpError_(400, 'Password baru 8-72 karakter.');
+  }
+  if (!safeEqual_(hashPassword_(oldPassword, user.salt), user.hash)) {
+    addFail_(user.username);
+    throw httpError_(400, 'Password saat ini salah.');
+  }
+  if (newPassword === oldPassword) {
+    throw httpError_(400, 'Password baru tidak boleh sama dengan yang lama.');
+  }
+
+  clearFails_(user.username);
+
+  const salt = Utilities.getUuid();
+  const hash = hashPassword_(newPassword, salt);
+
+  getOrCreateUsersSheet_(getSpreadsheet())
+    .getRange(user.row, 6, 1, 2)
+    .setValues([[salt, hash]]);
+
+  writeAuditLog('GANTI_PASSWORD', 'Username=' + user.username);
+
+  // Token lama otomatis tidak berlaku (hash berubah); beri token baru.
+  const session = issueToken_(user.username, hash);
+
+  return {
+    success: true,
+    message: 'Password berhasil diubah.',
+    token: session.token,
+    expiresAt: session.expiresAt
+  };
 }

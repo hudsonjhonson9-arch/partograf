@@ -609,7 +609,6 @@
 <div class="login-field"><label>Nama Pengguna</label><input id="loginUser" placeholder="Masukkan username" autocomplete="username"></div>
 <div class="login-field"><label>Kata Sandi</label><input id="loginPass" type="password" placeholder="Masukkan password" autocomplete="current-password"></div>
 <button class="login-submit" onclick="loginApp()">Masuk ke Aplikasi</button>
-<div class="demo"><b>Akun awal:</b> admin/admin123 &nbsp;·&nbsp; bidan/bidan123 &nbsp;·&nbsp; pimpinan/pimpinan123</div>
 <div style="text-align:center;margin-top:22px;color:#8a978f;font-size:11px;font-family:var(--mono)">PARTOGRAF TEPAT · RSU HOBA KALLA<br>PEMERINTAH KABUPATEN SUMBA BARAT</div>
 </div></div></div>
 <div id="sidePremium" class="side-premium" style="display:none">
@@ -629,6 +628,7 @@
 <button class="side-link" data-page="hakakses" data-role="ADMIN" onclick="showPage('hakakses')"><svg class="nav-ic" aria-hidden="true"><use href="#i-access"></use></svg><span>Hak Akses</span></button>
 <button class="side-link" data-page="pengguna" data-role="ADMIN" onclick="showPage('pengguna')"><svg class="nav-ic" aria-hidden="true"><use href="#i-user"></use></svg><span>Pengguna</span></button>
 <div class="side-user"><b id="sideName">-</b><br><span id="sideRole">-</span></div>
+<button class="side-link" data-page="akun" onclick="showPage('akun')"><svg class="nav-ic" aria-hidden="true"><use href="#i-access"></use></svg><span>Ganti Password</span></button>
 <button class="side-link side-logout" onclick="logoutApp()"><svg class="nav-ic" aria-hidden="true"><use href="#i-logout"></use></svg><span>Logout</span></button>
 </div>
 
@@ -663,20 +663,34 @@
     <section id="perbandingan" class="page"><div class="page-title"><div><h2>Perbandingan</h2><p>Perubahan kepatuhan sebelum dan sesudah.</p></div></div><div id="perbandinganContent">Memuat data...</div></section>
     <section id="checklist" class="page"><div class="page-title"><div><h2>Checklist TEPAT</h2><p>Instrumen penilaian yang digunakan pada monitoring.</p></div></div><div class="hak-card"><table><thead><tr><th>No</th><th>Komponen</th><th>Indikator Monitoring</th><th>Ya</th><th>Tidak</th></tr></thead><tbody><tr><td>1</td><td><b>Tertib</b></td><td>Partograf diisi sesuai tahapan dan tidak ada bagian penting yang terlewat.</td><td>1</td><td>0</td></tr><tr><td>2</td><td><b>Efektif</b></td><td>Pengisian mendukung pemantauan kemajuan persalinan dan pengambilan keputusan.</td><td>1</td><td>0</td></tr><tr><td>3</td><td><b>Profesional</b></td><td>Dokumentasi jelas, konsisten, dan sesuai standar pelayanan.</td><td>1</td><td>0</td></tr><tr><td>4</td><td><b>Akurat</b></td><td>Data hasil pemantauan dicatat sesuai kondisi atau hasil pemeriksaan.</td><td>1</td><td>0</td></tr><tr><td>5</td><td><b>Tepat Waktu</b></td><td>Pengisian dilakukan sesuai waktu pemantauan yang ditetapkan.</td><td>1</td><td>0</td></tr></tbody></table></div></section>
     <section id="panduan" class="page"><div class="page-title"><div><h2>Panduan</h2><p>Petunjuk penggunaan aplikasi.</p></div></div><div class="hak-card"><ol><li>Login menggunakan username dan password.</li><li>Pilih <b>Input Monitoring</b> untuk memasukkan hasil penilaian.</li><li>Isi tanggal, kode Partograf, inisial bidan, dan status monitoring.</li><li>Nilai Tertib, Efektif, Profesional, Akurat, dan Tepat Waktu dengan Ya/Tidak.</li><li>Skor 5 = <b>PATUH</b>; skor kurang dari 5 = <b>BELUM PATUH</b>.</li><li>Gunakan Dashboard, Rekap, dan Perbandingan untuk evaluasi.</li></ol></div></section>
-    <section id="pengguna" class="page"><div class="page-title"><div><h2>Manajemen Pengguna</h2><p>Pengaturan akun dan petugas yang dapat mengakses sistem.</p></div></div><div class="hak-card"><table><thead><tr><th>Username</th><th>Nama</th><th>Peran</th></tr></thead><tbody id="userTable"></tbody></table></div></section>
+    <section id="akun" class="page"><div class="page-title"><div><h2>Ganti Password</h2><p>Ubah password akun yang sedang Anda gunakan.</p></div></div><div class="form" style="max-width:480px"><div><label>Password Saat Ini</label><input id="pwOld" type="password" autocomplete="current-password"></div><div style="margin-top:14px"><label>Password Baru (minimal 8 karakter)</label><input id="pwNew" type="password" autocomplete="new-password"></div><div style="margin-top:14px"><label>Ulangi Password Baru</label><input id="pwNew2" type="password" autocomplete="new-password"></div><button class="btn" onclick="gantiPassword()"><svg class="nav-ic" aria-hidden="true"><use href="#i-save"></use></svg> Simpan Password</button></div></section>
+    <section id="pengguna" class="page"><div class="page-title"><div><h2>Manajemen Pengguna</h2><p>Kelola akun yang dapat masuk ke sistem. Data akun disimpan di sheet USERS.</p></div><button class="btn secondary" onclick="loadUsers()"><svg class="nav-ic" aria-hidden="true"><use href="#i-refresh"></use></svg> Refresh</button></div>
+      <div class="form" style="margin-bottom:18px"><h3 id="userFormTitle" style="margin-top:0">Tambah Pengguna</h3><div class="grid">
+        <div><label>Username</label><input id="uUsername" placeholder="huruf kecil, angka, . _ -" autocomplete="off"></div>
+        <div><label>Nama Lengkap</label><input id="uNama" autocomplete="off"></div>
+        <div><label>Peran</label><select id="uPeran"><option value="ADMIN">ADMIN — Administrator</option><option value="PETUGAS" selected>PETUGAS — Bidan</option><option value="PIMPINAN">PIMPINAN — Pimpinan RS</option></select></div>
+        <div><label>Inisial Bidan</label><input id="uInisial" placeholder="Wajib untuk PETUGAS, mis. BA" autocomplete="off"></div>
+        <div><label>Password <small id="uPassHint" style="font-weight:400"></small></label><input id="uPassword" type="password" placeholder="Minimal 8 karakter" autocomplete="new-password"></div>
+        <div><label>Status</label><select id="uAktif"><option value="Ya">Aktif</option><option value="Tidak">Nonaktif</option></select></div>
+      </div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="simpanUser()"><svg class="nav-ic" aria-hidden="true"><use href="#i-save"></use></svg> Simpan</button><button class="btn secondary" onclick="resetUserForm()"><svg class="nav-ic" aria-hidden="true"><use href="#i-close"></use></svg> Batal</button></div></div>
+      <div id="userListContent">Memuat data...</div></section>
     <section id="hakakses" class="page"><div class="page-title"><div><h2>Hak Akses</h2><p>Pengaturan hak akses berdasarkan peran pengguna.</p></div></div><div class="hak-grid"><div class="hak-card"><h3>Administrator</h3><span class="role-pill">ADMIN</span><p>Akses penuh ke seluruh menu aplikasi.</p></div><div class="hak-card"><h3>Petugas Bidan</h3><span class="role-pill">PETUGAS</span><p>Dashboard, input, data monitoring, checklist, dan panduan.</p></div><div class="hak-card"><h3>Pimpinan RS</h3><span class="role-pill">PIMPINAN</span><p>Dashboard, data, evaluasi, rekap, perbandingan, dan panduan.</p></div></div></section>
   </div>
 </div>
 <script>
 let currentUser=null;
-const USERS={admin:{password:'admin123',name:'Administrator',role:'ADMIN',inisial:''},bidan:{password:'bidan123',name:'Petugas Bidan',role:'PETUGAS',inisial:'BD'},pimpinan:{password:'pimpinan123',name:'Pimpinan RS',role:'PIMPINAN',inisial:''}};
-const ROLE_PAGES={ADMIN:['dashboard','input','data','evaluasi','rekapsebelum','rekapsesudah','perbandingan','checklist','panduan','hakakses','pengguna'],PETUGAS:['dashboard','input','data','checklist','panduan'],PIMPINAN:['dashboard','data','evaluasi','rekapsebelum','rekapsesudah','perbandingan','panduan']};
+// Akun & password disimpan di server (sheet USERS), bukan di kode ini. Daftar halaman
+// per peran di bawah hanya mengatur TAMPILAN menu; hak akses sebenarnya dicek di server.
+const ROLE_PAGES={ADMIN:['dashboard','input','data','evaluasi','rekapsebelum','rekapsesudah','perbandingan','checklist','panduan','hakakses','pengguna','akun'],PETUGAS:['dashboard','input','data','checklist','panduan','akun'],PIMPINAN:['dashboard','data','evaluasi','rekapsebelum','rekapsesudah','perbandingan','panduan','akun']};
 
-// NOTE keamanan: login di bawah ini murni pengecekan di sisi browser (sama seperti
-// versi Apps Script sebelumnya) — cukup untuk membedakan tampilan/menu per peran,
-// TAPI bukan otentikasi yang aman untuk data produksi. Untuk keamanan sungguhan,
-// pindahkan pengecekan username/password ini ke sebuah API route (mis. /api/login)
-// dan simpan kredensial di Environment Variables, bukan di kode frontend.
+/* ===== Sesi (token dari server) ===== */
+const SESSION_KEY='ptepat_session';
+function getSession(){try{const s=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');if(s&&s.token&&(!s.exp||Date.now()<s.exp))return s}catch(e){}return null}
+function setSession(token,exp){localStorage.setItem(SESSION_KEY,JSON.stringify({token:token,exp:exp}))}
+function clearCaches(){Object.keys(localStorage).filter(k=>k.indexOf('pt_cache_')===0).forEach(k=>localStorage.removeItem(k))}
+function clearSession(){localStorage.removeItem(SESSION_KEY);localStorage.removeItem('ptepat_user');clearCaches()}
+function toCurrentUser(u){return {username:u.username,name:u.nama,role:u.peran,inisial:u.inisial||''}}
+function sessionExpired(){clearSession();try{sessionStorage.setItem('pt_login_msg','Sesi Anda telah berakhir. Silakan masuk kembali.')}catch(e){}location.reload()}
 
 // Colour language borrowed straight from the partograph itself:
 // under the alert line = danger (red), between alert & action = caution (amber), clear = safe (green)
@@ -699,6 +713,9 @@ function showError(id,error){document.getElementById(id).innerHTML='<div class="
  */
 async function apiFetch(url, options){
   let res;
+  options = options || {};
+  const sess = getSession();
+  if(sess && sess.token){ options.headers = Object.assign({}, options.headers, {'Authorization':'Bearer '+sess.token}); }
   try{
     res = await fetch(url, options);
   }catch(networkErr){
@@ -708,17 +725,23 @@ async function apiFetch(url, options){
   let body = null;
   try{ body = text ? JSON.parse(text) : null; }catch(parseErr){ body = null; }
   if(!res.ok){
+    if(res.status === 401 && sess){ sessionExpired(); }
     const msg = (body && body.error) ? body.error : ('Server mengembalikan status ' + res.status + '.');
     throw new Error(msg);
   }
   return body;
 }
 
-function loginApp(){
- const u=document.getElementById('loginUser').value.trim().toLowerCase(),p=document.getElementById('loginPass').value,e=document.getElementById('loginError');e.style.display='none';
+async function loginApp(){
+ const u=document.getElementById('loginUser').value.trim().toLowerCase(),p=document.getElementById('loginPass').value,e=document.getElementById('loginError'),btn=document.querySelector('.login-submit');e.style.display='none';
  if(!u||!p){e.textContent='Username dan password wajib diisi.';e.style.display='block';return;}
- if(!USERS[u]||USERS[u].password!==p){e.textContent='Username atau password salah.';e.style.display='block';return;}
- currentUser={username:u,name:USERS[u].name,role:USERS[u].role};localStorage.setItem('ptepat_user',JSON.stringify(currentUser));enterApp();
+ btn.disabled=true;btn.textContent='Memeriksa...';
+ try{
+  clearSession();
+  const r=await apiFetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+  setSession(r.token,r.expiresAt);currentUser=toCurrentUser(r.user);document.getElementById('loginPass').value='';enterApp();
+ }catch(err){e.textContent=err.message||'Gagal masuk.';e.style.display='block';}
+ finally{btn.disabled=false;btn.textContent='Masuk ke Aplikasi';}
 }
 function enterApp(){
  document.getElementById('loginScreen').style.display='none';document.getElementById('sidePremium').style.display='block';document.getElementById('premiumMain').style.display='block';
@@ -728,17 +751,77 @@ function enterApp(){
  showPage('dashboard');
  refreshBadgeQuiet();
 }
-function logoutApp(){localStorage.removeItem('ptepat_user');currentUser=null;location.reload()}
+function logoutApp(){clearSession();currentUser=null;location.reload()}
 function showPage(name){
  if(!currentUser)return;
  const allowed=ROLE_PAGES[currentUser.role]||[];if(!allowed.includes(name)){toast('Anda tidak memiliki hak akses untuk menu ini.');return;}
  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));const target=document.getElementById(name);if(!target)return;target.classList.add('active');
  document.querySelectorAll('.side-link[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===name));
- if(name==='dashboard')loadDashboard();if(name==='pengguna')loadUsers();if(name==='data')loadData();if(name==='evaluasi')loadEvaluasi();if(name==='rekapsebelum'||name==='rekapsesudah'||name==='perbandingan')loadRekap();
+ if(name==='dashboard')loadDashboard();if(name==='pengguna'){resetUserForm();loadUsers();}if(name==='data')loadData();if(name==='evaluasi')loadEvaluasi();if(name==='rekapsebelum'||name==='rekapsesudah'||name==='perbandingan')loadRekap();
 }
+/* ===== Manajemen pengguna (ADMIN) ===== */
+let _users=[],_editUser=null;
 function loadUsers(){
- const el=document.getElementById('userTable');
- el.innerHTML=Object.keys(USERS).map((k,i)=>'<tr style="--i:'+i+'"><td>'+k+'</td><td>'+USERS[k].name+'</td><td>'+USERS[k].role+'</td></tr>').join('');
+ const el=document.getElementById('userListContent');
+ el.innerHTML='<div class="loading">Memuat data...</div>';
+ apiFetch('/api/users').then(r=>{_users=r.users||[];renderUsers(el)}).catch(e=>showError('userListContent',e));
+}
+function renderUsers(el){
+ if(!_users.length){el.innerHTML='<div class="empty-box">Belum ada pengguna.</div>';return;}
+ let h='<div style="overflow:auto"><table><thead><tr><th>Username</th><th>Nama</th><th>Peran</th><th>Inisial</th><th>Status</th><th>Login Terakhir</th><th>Aksi</th></tr></thead><tbody>';
+ _users.forEach((u,i)=>{
+  const self=currentUser&&u.username===currentUser.username;
+  h+='<tr style="--i:'+i+'"><td><b>'+esc(u.username)+'</b>'+(self?' <small>(Anda)</small>':'')+'</td><td>'+esc(u.nama)+'</td><td><span class="role-pill">'+esc(u.peran)+'</span></td><td>'+esc(u.inisial||'-')+'</td><td class="'+(u.aktif?'patuh':'belum')+'">'+(u.aktif?'Aktif':'Nonaktif')+'</td><td>'+esc(u.loginTerakhir||'-')+'</td><td style="white-space:nowrap"><button class="btn secondary" style="margin:0 4px 0 0;padding:6px 10px;font-size:11.5px" onclick="editUser('+i+')">Edit</button>'+(self?'':'<button class="btn secondary" style="margin:0;padding:6px 10px;font-size:11.5px" onclick="hapusUser('+i+')">Hapus</button>')+'</td></tr>';
+ });
+ el.innerHTML=h+'</tbody></table></div>';
+}
+function resetUserForm(){
+ _editUser=null;
+ ['uUsername','uNama','uInisial','uPassword'].forEach(id=>{const x=document.getElementById(id);if(x)x.value=''});
+ const un=document.getElementById('uUsername');if(un)un.readOnly=false;
+ const pe=document.getElementById('uPeran');if(pe)pe.value='PETUGAS';
+ const ak=document.getElementById('uAktif');if(ak)ak.value='Ya';
+ const t=document.getElementById('userFormTitle');if(t)t.textContent='Tambah Pengguna';
+ const hnt=document.getElementById('uPassHint');if(hnt)hnt.textContent='';
+}
+function editUser(i){
+ const u=_users[i];if(!u)return;
+ _editUser=u.username;
+ document.getElementById('uUsername').value=u.username;document.getElementById('uUsername').readOnly=true;
+ document.getElementById('uNama').value=u.nama;document.getElementById('uPeran').value=u.peran;
+ document.getElementById('uInisial').value=u.inisial||'';document.getElementById('uAktif').value=u.aktif?'Ya':'Tidak';
+ document.getElementById('uPassword').value='';
+ document.getElementById('userFormTitle').textContent='Edit Pengguna: '+u.username;
+ document.getElementById('uPassHint').textContent='(kosongkan bila tidak diganti)';
+ document.getElementById('uNama').focus();window.scrollTo({top:0,behavior:'smooth'});
+}
+function simpanUser(){
+ const editing=!!_editUser;
+ const d={username:val('uUsername').trim().toLowerCase(),nama:val('uNama').trim(),peran:val('uPeran'),inisial:val('uInisial').trim(),aktif:val('uAktif')==='Ya',password:val('uPassword')};
+ if(!d.username||!d.nama){toast('Username dan nama wajib diisi.');return;}
+ if(!editing&&!d.password){toast('Password wajib diisi untuk pengguna baru.');return;}
+ if(d.password&&d.password.length<8){toast('Password minimal 8 karakter.');return;}
+ if(d.peran==='PETUGAS'&&!d.inisial){toast('Inisial bidan wajib diisi untuk peran PETUGAS.');return;}
+ if(!d.password)delete d.password;
+ apiFetch('/api/users',{method:editing?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
+  .then(r=>{toast(r.message||'Tersimpan.');resetUserForm();loadUsers()})
+  .catch(e=>toast('Gagal menyimpan: '+e.message));
+}
+function hapusUser(i){
+ const u=_users[i];if(!u)return;
+ if(!confirm('Hapus pengguna "'+u.username+'"? Tindakan ini tidak dapat dibatalkan. (Untuk menutup akses sementara, cukup ubah status menjadi Nonaktif.)'))return;
+ apiFetch('/api/users?username='+encodeURIComponent(u.username),{method:'DELETE'})
+  .then(r=>{toast(r.message||'Pengguna dihapus.');loadUsers()})
+  .catch(e=>toast('Gagal menghapus: '+e.message));
+}
+function gantiPassword(){
+ const o=val('pwOld'),n=val('pwNew'),n2=val('pwNew2');
+ if(!o||!n){toast('Isi password saat ini dan password baru.');return;}
+ if(n!==n2){toast('Konfirmasi password baru tidak sama.');return;}
+ if(n.length<8){toast('Password baru minimal 8 karakter.');return;}
+ apiFetch('/api/password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({oldPassword:o,newPassword:n})})
+  .then(r=>{if(r.token)setSession(r.token,r.expiresAt);['pwOld','pwNew','pwNew2'].forEach(id=>document.getElementById(id).value='');toast(r.message||'Password diubah.')})
+  .catch(e=>toast('Gagal: '+e.message));
 }
 function cacheGet(k){try{return JSON.parse(localStorage.getItem('pt_cache_'+k))}catch(e){return null}}
 function cacheSet(k,v){try{localStorage.setItem('pt_cache_'+k,JSON.stringify(v))}catch(e){}}
@@ -762,7 +845,7 @@ function simpanData(){
  if(!data.tanggal||!data.kode||!data.bidan||!data.status){toast('Tanggal, kode Partograf, inisial bidan, dan status wajib diisi.');return;}
  const comps=['tertib','efektif','profesional','akurat','tepatWaktu'];if(comps.some(k=>!data[k])){toast('Lima komponen TEPAT wajib dinilai.');return;}
  apiFetch('/api/monitoring',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
-   .then(r=>{toast((r.message||'Data tersimpan.')+' ('+(r.statusKepatuhan||'')+' '+(r.skor!=null?r.skor+'/5':'')+')');document.querySelectorAll('#input input,#input select,#input textarea').forEach(x=>x.value='');updateScore();cacheSet('dashboard',null);showPage('dashboard');refreshBadgeQuiet()})
+   .then(r=>{toast((r.message||'Data tersimpan.')+' ('+(r.statusKepatuhan||'')+' '+(r.skor!=null?r.skor+'/5':'')+')');document.querySelectorAll('#input input,#input select,#input textarea').forEach(x=>x.value='');if(currentUser&&currentUser.inisial)document.getElementById('bidan').value=currentUser.inisial;updateScore();cacheSet('dashboard',null);showPage('dashboard');refreshBadgeQuiet()})
   .catch(e=>toast('Gagal menyimpan: '+e.message));
 }
 function val(id){return document.getElementById(id).value}
@@ -797,10 +880,10 @@ function loadData(){
   updateBadge(data);
  }).catch(e=>{if(!cached)showError('dataContent',e);});
 }
-function renderData(el,data){
+function renderData(el,data){const canDel=!!(currentUser&&currentUser.role==='ADMIN');
  if(!data.length){el.innerHTML='<div class="empty-box">Tidak ada data yang cocok dengan filter saat ini.</div>';return;}
- let h='<div style="overflow:auto"><table id="dataTablePrint"><thead><tr><th>No</th><th>Tanggal</th><th>Kode</th><th>Bidan</th><th>Tertib</th><th>Efektif</th><th>Profesional</th><th>Akurat</th><th>Tepat Waktu</th><th>Skor</th><th>Status</th><th>Monitoring</th><th>Keterangan</th><th class="no-print">Aksi</th></tr></thead><tbody>';
- data.forEach((r,i)=>{h+='<tr style="--i:'+i+'"><td>'+esc(r.no)+'</td><td>'+esc(r.tanggal)+'</td><td>'+esc(r.kode)+'</td><td>'+esc(r.bidan)+'</td><td>'+esc(r.tertib)+'</td><td>'+esc(r.efektif)+'</td><td>'+esc(r.profesional)+'</td><td>'+esc(r.akurat)+'</td><td>'+esc(r.tepatWaktu)+'</td><td>'+esc(r.skor)+'</td><td class="'+(r.statusKepatuhan==='PATUH'?'patuh':'belum')+'">'+esc(r.statusKepatuhan)+'</td><td>'+esc(r.statusMonitoring)+'</td><td>'+esc(r.keterangan||'')+'</td><td class="no-print"><button class="btn secondary" style="margin:0;padding:6px 10px;font-size:11.5px" onclick="hapusData('+r.rowNumber+',\''+esc(r.kode)+'\')">🗑 Hapus</button></td></tr>'});
+ let h='<div style="overflow:auto"><table id="dataTablePrint"><thead><tr><th>No</th><th>Tanggal</th><th>Kode</th><th>Bidan</th><th>Tertib</th><th>Efektif</th><th>Profesional</th><th>Akurat</th><th>Tepat Waktu</th><th>Skor</th><th>Status</th><th>Monitoring</th><th>Keterangan</th>'+(canDel?'<th class="no-print">Aksi</th>':'')+'</tr></thead><tbody>';
+ data.forEach((r,i)=>{h+='<tr style="--i:'+i+'"><td>'+esc(r.no)+'</td><td>'+esc(r.tanggal)+'</td><td>'+esc(r.kode)+'</td><td>'+esc(r.bidan)+'</td><td>'+esc(r.tertib)+'</td><td>'+esc(r.efektif)+'</td><td>'+esc(r.profesional)+'</td><td>'+esc(r.akurat)+'</td><td>'+esc(r.tepatWaktu)+'</td><td>'+esc(r.skor)+'</td><td class="'+(r.statusKepatuhan==='PATUH'?'patuh':'belum')+'">'+esc(r.statusKepatuhan)+'</td><td>'+esc(r.statusMonitoring)+'</td><td>'+esc(r.keterangan||'')+'</td>'+(canDel?'<td class="no-print"><button class="btn secondary" style="margin:0;padding:6px 10px;font-size:11.5px" onclick="hapusData('+r.rowNumber+',\''+esc(r.kode)+'\')">🗑 Hapus</button></td>':'')+'</tr>'});
  h+='</tbody></table></div>';
  el.innerHTML=h;
 }
@@ -871,7 +954,11 @@ function perItemTable(b,s){
 }
 function updateScore(){const ids=['tertib','efektif','profesional','akurat','tepatWaktu'];const score=ids.reduce((n,id)=>n+(val(id)==='Ya'?1:0),0);const sp=document.getElementById('scorePreview'),st=document.getElementById('statusPreview'),box=st.closest('.score-preview');sp.textContent=score+' / 5';st.textContent=score===5?'PATUH':score>0?'BELUM PATUH':'Belum dinilai';const c=score===5?getComputedStyle(document.documentElement).getPropertyValue('--patuh'):score>0?getComputedStyle(document.documentElement).getPropertyValue('--action'):getComputedStyle(document.documentElement).getPropertyValue('--ink-soft');st.style.color=c.trim();box.style.borderColor=c.trim();}
 document.addEventListener('DOMContentLoaded',()=>{['tertib','efektif','profesional','akurat','tepatWaktu'].forEach(id=>document.getElementById(id).addEventListener('change',updateScore));});
-window.addEventListener('load',()=>{try{currentUser=JSON.parse(localStorage.getItem('ptepat_user')||'null')}catch(e){currentUser=null}if(currentUser&&USERS[currentUser.username])enterApp();});
+window.addEventListener('load',()=>{
+ try{const msg=sessionStorage.getItem('pt_login_msg');if(msg){sessionStorage.removeItem('pt_login_msg');const e=document.getElementById('loginError');e.textContent=msg;e.style.display='block';}}catch(err){}
+ if(!getSession())return;
+ apiFetch('/api/me').then(r=>{currentUser=toCurrentUser(r.user);enterApp();}).catch(()=>{});
+});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&['loginUser','loginPass'].includes(document.activeElement.id))loginApp();});
 </script>
 

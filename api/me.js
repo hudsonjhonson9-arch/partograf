@@ -1,5 +1,5 @@
 const { bearer, callApps, route } = require('../lib/apps');
 
 module.exports = route({
-  GET: (req) => callApps('dashboard', bearer(req))
+  GET: (req) => callApps('me', bearer(req))
 });
