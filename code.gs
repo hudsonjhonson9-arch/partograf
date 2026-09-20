@@ -467,15 +467,19 @@ function getDashboardData() {
 
   const sb = { jumlah: 0, patuh: 0, belumPatuh: 0 };
   const sd = { jumlah: 0, patuh: 0, belumPatuh: 0 };
+  const sbItems = [];
+  const sdItems = [];
 
   items.forEach(it => {
     const grp = String(it.statusMonitoring || '').trim().toUpperCase();
     const patuh = it.statusKepatuhan === 'PATUH';
     if (grp === 'SEBELUM') {
       sb.jumlah++;
+      sbItems.push(it);
       if (patuh) { sb.patuh++; } else { sb.belumPatuh++; }
     } else if (grp === 'SESUDAH') {
       sd.jumlah++;
+      sdItems.push(it);
       if (patuh) { sd.patuh++; } else { sd.belumPatuh++; }
     }
   });
@@ -483,21 +487,51 @@ function getDashboardData() {
   const sbPct = sb.jumlah ? sb.patuh / sb.jumlah : 0;
   const sdPct = sd.jumlah ? sd.patuh / sd.jumlah : 0;
 
+  // Hitungan PER ITEM (Tertib, Efektif, Profesional, Akurat, Tepat Waktu)
+  const sbPerItem = hitungPerItem_(sbItems);
+  const sdPerItem = hitungPerItem_(sdItems);
+  const peningkatanPerItem = {};
+  KOMPONEN_TEPAT.forEach(k => {
+    peningkatanPerItem[k] = sdPerItem[k].persentase - sbPerItem[k].persentase;
+  });
+
   return {
     sebelum: {
       jumlah: sb.jumlah,
       patuh: sb.patuh,
       belumPatuh: sb.belumPatuh,
-      persentase: sbPct
+      persentase: sbPct,
+      perItem: sbPerItem
     },
     sesudah: {
       jumlah: sd.jumlah,
       patuh: sd.patuh,
       belumPatuh: sd.belumPatuh,
-      persentase: sdPct
+      persentase: sdPct,
+      perItem: sdPerItem
     },
-    peningkatan: sdPct - sbPct
+    peningkatan: sdPct - sbPct,
+    peningkatanPerItem: peningkatanPerItem
   };
+}
+
+/**
+ * Hitung persentase "Ya" untuk masing-masing komponen TEPAT.
+ * Mengembalikan { tertib:{ya,tidak,persentase}, efektif:{...}, ... }.
+ * persentase berupa pecahan 0..1 (sama seperti field persentase lainnya).
+ */
+function hitungPerItem_(items) {
+  const hasil = {};
+  const total = items.length;
+  KOMPONEN_TEPAT.forEach(k => {
+    const ya = items.filter(it => it[k] === 'Ya').length;
+    hasil[k] = {
+      ya: ya,
+      tidak: total - ya,
+      persentase: total ? ya / total : 0
+    };
+  });
+  return hasil;
 }
 
 

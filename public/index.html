@@ -755,7 +755,7 @@ function loadDashboard(){
 function renderDashboard(el,data){
  const b=(Number(data.sebelum.persentase||0)*100).toFixed(1),s=(Number(data.sesudah.persentase||0)*100).toFixed(1),p=(Number(data.peningkatan||0)*100).toFixed(1);
  const cb=statusColor(b), cs=statusColor(s);
- el.innerHTML='<div class="cards"><div class="card"><h3>Partograf Sebelum</h3><div class="number">'+data.sebelum.jumlah+'</div></div><div class="card" style="border-left-color:'+cb+'"><h3>Kepatuhan Sebelum</h3><div class="number" style="color:'+cb+'">'+b+'%</div></div><div class="card"><h3>Partograf Sesudah</h3><div class="number">'+data.sesudah.jumlah+'</div></div><div class="card" style="border-left-color:'+cs+'"><h3>Kepatuhan Sesudah</h3><div class="number" style="color:'+cs+'">'+s+'%</div></div><div class="card"><h3>Peningkatan</h3><div class="number">'+(p>=0?'+':'')+p+'%</div></div></div><div class="chart"><h3>Grafik Kepatuhan <span style="font-size:11px;color:var(--ink-soft);font-family:var(--mono);font-weight:400">— skala warna garis waspada / bertindak partograf</span></h3><div class="bar-container"><div class="bar-label">Sebelum: '+b+'%</div><div class="bar"><div class="bar-value" style="--w:'+Math.min(100,Math.max(0,b))+'%;background:'+cb+'">'+b+'%</div></div></div><div class="bar-container"><div class="bar-label">Sesudah: '+s+'%</div><div class="bar"><div class="bar-value" style="--w:'+Math.min(100,Math.max(0,s))+'%;background:'+cs+'">'+s+'%</div></div></div></div>';
+ el.innerHTML='<div class="cards"><div class="card"><h3>Partograf Sebelum</h3><div class="number">'+data.sebelum.jumlah+'</div></div><div class="card" style="border-left-color:'+cb+'"><h3>Kepatuhan Sebelum</h3><div class="number" style="color:'+cb+'">'+b+'%</div></div><div class="card"><h3>Partograf Sesudah</h3><div class="number">'+data.sesudah.jumlah+'</div></div><div class="card" style="border-left-color:'+cs+'"><h3>Kepatuhan Sesudah</h3><div class="number" style="color:'+cs+'">'+s+'%</div></div><div class="card"><h3>Peningkatan</h3><div class="number">'+(p>=0?'+':'')+p+'%</div></div></div><div class="chart"><h3>Grafik Kepatuhan <span style="font-size:11px;color:var(--ink-soft);font-family:var(--mono);font-weight:400">— skala warna garis waspada / bertindak partograf</span></h3><div class="bar-container"><div class="bar-label">Sebelum: '+b+'%</div><div class="bar"><div class="bar-value" style="--w:'+Math.min(100,Math.max(0,b))+'%;background:'+cb+'">'+b+'%</div></div></div><div class="bar-container"><div class="bar-label">Sesudah: '+s+'%</div><div class="bar"><div class="bar-value" style="--w:'+Math.min(100,Math.max(0,s))+'%;background:'+cs+'">'+s+'%</div></div></div></div>'+perItemChart(data);
 }
 function simpanData(){
  const data={tanggal:val('tanggal'),kode:val('kode'),bidan:val('bidan'),tertib:val('tertib'),efektif:val('efektif'),profesional:val('profesional'),akurat:val('akurat'),tepatWaktu:val('tepatWaktu'),status:val('status'),keterangan:val('keterangan')};
@@ -831,7 +831,7 @@ function loadRekap(){
  else{el.innerHTML='<div class="loading">Memuat data...</div>';}
  apiFetch('/api/dashboard').then(function(d){cacheSet('dashboard',d);renderRekap(el,id,d);}).catch(e=>{if(!cached)showError(el.id,e);});
 }
-function renderRekap(el,id,d){const b=d.sebelum,s=d.sesudah,p=d.peningkatan; if(id==='rekapsebelum'||id==='rekapsesudah'){el.innerHTML=rekapCard(b,s);return;}const bp=(b.persentase*100).toFixed(1),sp=(s.persentase*100).toFixed(1),pp=(p*100).toFixed(1);el.innerHTML='<div class="hak-card"><table><tr><th>Indikator</th><th>Sebelum</th><th>Sesudah</th><th>Perubahan</th></tr><tr><td>Jumlah Partograf</td><td>'+b.jumlah+'</td><td>'+s.jumlah+'</td><td>'+(s.jumlah-b.jumlah)+'</td></tr><tr><td>Jumlah Patuh</td><td>'+b.patuh+'</td><td>'+s.patuh+'</td><td>'+(s.patuh-b.patuh)+'</td></tr><tr><td>Belum Patuh</td><td>'+b.belumPatuh+'</td><td>'+s.belumPatuh+'</td><td>'+(s.belumPatuh-b.belumPatuh)+'</td></tr><tr><td><b>Kepatuhan</b></td><td><b>'+bp+'%</b></td><td><b>'+sp+'%</b></td><td><b>'+pp+'%</b></td></tr></table></div>'}
+function renderRekap(el,id,d){const b=d.sebelum,s=d.sesudah,p=d.peningkatan; if(id==='rekapsebelum'||id==='rekapsesudah'){el.innerHTML=rekapCard(b,s);return;}const bp=(b.persentase*100).toFixed(1),sp=(s.persentase*100).toFixed(1),pp=(p*100).toFixed(1);el.innerHTML='<div class="hak-card"><table><tr><th>Indikator</th><th>Sebelum</th><th>Sesudah</th><th>Perubahan</th></tr><tr><td>Jumlah Partograf</td><td>'+b.jumlah+'</td><td>'+s.jumlah+'</td><td>'+(s.jumlah-b.jumlah)+'</td></tr><tr><td>Jumlah Patuh</td><td>'+b.patuh+'</td><td>'+s.patuh+'</td><td>'+(s.patuh-b.patuh)+'</td></tr><tr><td>Belum Patuh</td><td>'+b.belumPatuh+'</td><td>'+s.belumPatuh+'</td><td>'+(s.belumPatuh-b.belumPatuh)+'</td></tr><tr><td><b>Kepatuhan</b></td><td><b>'+bp+'%</b></td><td><b>'+sp+'%</b></td><td><b>'+pp+'%</b></td></tr></table></div>'+perItemTable(b,s)}
 function rekapCard(b,s){
   var bp=(b.persentase*100).toFixed(1),sp=(s.persentase*100).toFixed(1),pp=((s.persentase-b.persentase)*100).toFixed(1);
   function delta(v){return v>0?'<span style="color:var(--patuh)">+'+v+'</span>':v<0?'<span style="color:var(--action)">'+v+'</span>':'<span>0</span>';}
@@ -840,8 +840,35 @@ function rekapCard(b,s){
     +'<tr><td>Jumlah Patuh</td><td>'+b.patuh+'</td><td>'+s.patuh+'</td><td>'+delta(s.patuh-b.patuh)+'</td></tr>'
     +'<tr><td>Belum Patuh</td><td>'+b.belumPatuh+'</td><td>'+s.belumPatuh+'</td><td>'+delta(s.belumPatuh-b.belumPatuh)+'</td></tr>'
     +'<tr><td><b>Kepatuhan</b></td><td><b>'+bp+'%</b></td><td><b>'+sp+'%</b></td><td><b>'+delta(Number(pp))+'%</b></td></tr>'
-    +'</tbody></table></div>'}
+    +'</tbody></table></div>'+perItemTable(b,s)}
 function esc(v){return String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
+/* ===== Hitungan per item TEPAT ===== */
+const ITEMS_TEPAT=[['tertib','Tertib'],['efektif','Efektif'],['profesional','Profesional'],['akurat','Akurat'],['tepatWaktu','Tepat Waktu']];
+function itemBar(label,v){
+ const c=statusColor(v),w=Math.min(100,Math.max(0,v));
+ return '<div class="bar-container" style="margin:8px 0"><div class="bar-label">'+label+' — '+v.toFixed(1)+'%</div><div class="bar"><div class="bar-value" style="--w:'+w+'%;background:'+c+'">'+(v>=12?v.toFixed(1)+'%':'')+'</div></div></div>';
+}
+function perItemChart(d){
+ if(!d||!d.sebelum||!d.sesudah||!d.sebelum.perItem||!d.sesudah.perItem)return '';
+ const b=d.sebelum,s=d.sesudah;
+ let h='<div class="chart"><h3>Kepatuhan per Item TEPAT <span style="font-size:11px;color:var(--ink-soft);font-family:var(--mono);font-weight:400">— persentase partograf yang dinilai "Ya" pada tiap komponen</span></h3>';
+ ITEMS_TEPAT.forEach(function(it){
+  const bi=b.perItem[it[0]],si=s.perItem[it[0]],bv=Number(bi.persentase||0)*100,sv=Number(si.persentase||0)*100,dv=sv-bv;
+  h+='<div style="margin:20px 0 4px;font-weight:700;font-family:var(--mono);font-size:13px;color:var(--teal-deep)">'+it[1]+'<span style="float:right;color:'+(dv>=0?'var(--patuh)':'var(--action)')+'">'+(dv>=0?'+':'')+dv.toFixed(1)+'%</span></div>'
+   +itemBar('Sebelum ('+bi.ya+'/'+b.jumlah+')',bv)+itemBar('Sesudah ('+si.ya+'/'+s.jumlah+')',sv);
+ });
+ return h+'</div>';
+}
+function perItemTable(b,s){
+ if(!b||!s||!b.perItem||!s.perItem)return '';
+ function dl(v){v=Number(v.toFixed(1));return v>0?'<span style="color:var(--patuh)">+'+v+'%</span>':v<0?'<span style="color:var(--action)">'+v+'%</span>':'<span>0%</span>';}
+ let h='<div class="hak-card" style="margin-top:20px"><h3>Kepatuhan per Item TEPAT</h3><table><thead><tr><th>Item</th><th>Sebelum</th><th>Sesudah</th><th>Perubahan</th></tr></thead><tbody>';
+ ITEMS_TEPAT.forEach(function(it){
+  const bi=b.perItem[it[0]],si=s.perItem[it[0]],bp=Number(bi.persentase||0)*100,sp=Number(si.persentase||0)*100;
+  h+='<tr><td><b>'+it[1]+'</b></td><td>'+bp.toFixed(1)+'% <small>('+bi.ya+'/'+b.jumlah+')</small></td><td>'+sp.toFixed(1)+'% <small>('+si.ya+'/'+s.jumlah+')</small></td><td>'+dl(sp-bp)+'</td></tr>';
+ });
+ return h+'</tbody></table></div>';
+}
 function updateScore(){const ids=['tertib','efektif','profesional','akurat','tepatWaktu'];const score=ids.reduce((n,id)=>n+(val(id)==='Ya'?1:0),0);const sp=document.getElementById('scorePreview'),st=document.getElementById('statusPreview'),box=st.closest('.score-preview');sp.textContent=score+' / 5';st.textContent=score===5?'PATUH':score>0?'BELUM PATUH':'Belum dinilai';const c=score===5?getComputedStyle(document.documentElement).getPropertyValue('--patuh'):score>0?getComputedStyle(document.documentElement).getPropertyValue('--action'):getComputedStyle(document.documentElement).getPropertyValue('--ink-soft');st.style.color=c.trim();box.style.borderColor=c.trim();}
 document.addEventListener('DOMContentLoaded',()=>{['tertib','efektif','profesional','akurat','tepatWaktu'].forEach(id=>document.getElementById(id).addEventListener('change',updateScore));});
 window.addEventListener('load',()=>{try{currentUser=JSON.parse(localStorage.getItem('ptepat_user')||'null')}catch(e){currentUser=null}if(currentUser&&USERS[currentUser.username])enterApp();});
